@@ -5,17 +5,21 @@ Framework de automatización de pruebas UI con **Playwright** y **Pytest** para 
 ## ⚡ Inicio Rápido
 
 ### 1. Activar entorno virtual
+
 ```powershell
 .\venv\Scripts\activate
 ```
 
 ### 2. Configurar `.env`
+
 ```bash
 cp .env.example .env
 ```
+
 Edita `.env` con URL, usuario y contraseña de tu ambiente.
 
 ### 3. Ejecutar tests
+
 ```bash
 pytest tests/ -v
 ```
@@ -24,7 +28,7 @@ Los reportes se generan automáticamente en `reports/report.html`.
 
 ## 📂 Estructura
 
-```
+```bash
 config/          # Configuración centralizada desde .env
 flows/           # Flujos de negocio (login, logout)
 pages/           # Page Objects con selectores y acciones
@@ -49,11 +53,11 @@ def test_login_home_logout_env(page):
 ## ⚙️ Configuración Disponible
 
 | Variable | Valor | Propósito |
-|----------|-------|----------|
-| `AMBIENTE` | QA, CERT, PROD | Ambiente de ejecución |
-| `BROWSER` | chromium, firefox, webkit | Navegador a usar |
-| `HEADLESS` | true/false | Navegador visible o no |
-| `SCREENSHOT_ON_FAIL` | true/false | Capturar screenshots en fallos |
+| -------- | ----- | --------- |
+| AMBIENTE | QA, CERT, PROD | Ambiente de ejecución |
+| BROWSER | chromium, firefox, webkit | Navegador a usar |
+| HEADLESS | true/false | Navegador visible o no |
+| SCREENSHOT_ON_FAIL | true/false | Capturar screenshots en fallos |
 
 ## 📊 Características
 
