@@ -1,6 +1,6 @@
 import logging
 import os
-from logging.handlers import TimedRotatingFileHandler
+from logging.handlers import RotatingFileHandler
 
 
 class ColorFormatter(logging.Formatter):
@@ -56,10 +56,10 @@ def get_logger(name="QA"):
         console_handler.setFormatter(ColorFormatter())
         logger.addHandler(console_handler)
 
-        # 3. Handler para ARCHIVO DIARIO con política de retención de 7 días
-        # midnight: Rota a las 00:00 | backupCount=7: Elimina archivos con antigüedad > 1 semana
-        file_handler = TimedRotatingFileHandler(
-            log_file, when="midnight", interval=1, backupCount=7, encoding="utf-8"
+        # 3. Handler para ARCHIVO con rotación por tamaño (50MB)
+        # maxBytes=50MB: Rota cuando alcance 50MB | backupCount=5: Mantiene 5 archivos viejos
+        file_handler = RotatingFileHandler(
+            log_file, maxBytes=52428800, backupCount=5, encoding="utf-8"
         )
 
         # Formato técnico y detallado para persistencia en archivo (sin colores ANSI)
