@@ -84,13 +84,13 @@ class BasePage:
         el.press(key)
 
     def select_option(
-        self,
-        el: Locator,
-        *,
-        value: str = None,
-        label: str = None,
-        index: int = None,
-        desc: str = "select",
+            self,
+            el: Locator,
+            *,
+            value: str = None,
+            label: str = None,
+            index: int = None,
+            desc: str = "select",
     ):
         """
         Selecciona una opción de un elemento <select> por su valor, etiqueta visible o índice.

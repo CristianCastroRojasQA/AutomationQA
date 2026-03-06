@@ -47,7 +47,7 @@ class AuthFlow:
         self.login_page.validar_en_login()
         if caso:
             # Captura evidencia de que el formulario de login está presente
-            capturar_evidencia(self.page, caso, "01_login_visible")
+            capturar_evidencia(self.page, caso, "login_visible")
 
         # Paso 2: Ejecuta la acción técnica de llenar campos y presionar 'Ingresar'
         self.log.info(f"Login con usuario: {usuario}")
@@ -59,7 +59,7 @@ class AuthFlow:
 
         if caso:
             # Captura evidencia del estado exitoso dentro de la aplicación
-            capturar_evidencia(self.page, caso, "02_home_visible")
+            capturar_evidencia(self.page, caso, "home_visible")
 
         self.log.info("FIN - Login OK")
         return welcome_text
@@ -90,6 +90,6 @@ class AuthFlow:
 
         if caso:
             # Captura la evidencia final del proceso de logout
-            capturar_evidencia(self.page, caso, "03_logout_ok")
+            capturar_evidencia(self.page, caso, "logout_ok")
 
         self.log.info("FIN - Logout OK")

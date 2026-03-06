@@ -6,6 +6,7 @@ from utils.logger import get_logger
 # Inicializamos el log para el proceso de configuración de los tests
 log = get_logger("Conftest")
 
+
 # ======================================================================
 # FIXTURES DE CONFIGURACIÓN DEL NAVEGADOR (Alcance de Sesión)
 # ======================================================================

@@ -10,7 +10,7 @@ log = get_logger("Screenshot")
 _carpetas_limpiadas = set()
 
 
-def capturar_evidencia(page: Page, nombre_caso: str, nombre_paso: str):
+def capturar_evidencia(page: Page, nombre_caso: str, nombre_paso: str) -> None:
     """
     Captura el contenido del navegador y gestiona el saneamiento de carpetas.
     Sustituye a pyautogui por el método nativo de Playwright.
