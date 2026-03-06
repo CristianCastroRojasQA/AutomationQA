@@ -46,6 +46,11 @@ class LoginPage(BasePage):
         # Botón Confirmar: Botón 'Aceptar' que aparece en la pantalla intermedia de cierre de sesión
         self.btn_confirmar_logout = page.locator("input[id$='ButtonOk']")
 
+        # Elemento de la versión (dentro del modal Acerca De)
+        self.version_sistema = page.locator("span[id$='AssemblyFileVersionAttribute']")
+        self.btn_cerrar_modal = page.locator("span[id$='lblCloseButton']")
+        self.opcion_acerca_de = page.locator("a[href='#about']")
+
     # -------------------------
     # Validaciones y acciones
     # -------------------------
@@ -68,6 +73,19 @@ class LoginPage(BasePage):
         """Valida la entrada exitosa al sistema y devuelve el nombre del usuario detectado."""
         self.wait_visible(self.user_welcome, desc="UserWelcome (post-login)")
         return self.user_welcome.inner_text().strip()
+
+    def obtener_version_sistema(self) -> str:
+        """Captura el texto de la versión del ensamblado en el modal."""
+        version = self.get_text(self.version_sistema, desc="Versión del Ensamblado")
+        self.log.info(f"VERSIÓN DETECTADA: {version}")
+        return version
+
+    def abrir_acerca_de(self):
+        """Abre el modal de información del sistema."""
+        # Primero abrimos el menú de usuario para ver la opción
+        self.click(self.user_dropdown, desc="Menú de usuario")
+        self.click(self.opcion_acerca_de, desc="Opción Acerca De")
+        self.wait_visible(self.version_sistema, desc="Modal Acerca De visible")
 
     def salir(self):
         """Ejecuta el flujo de salida: abre el menú de usuario y presiona 'Salir'."""
