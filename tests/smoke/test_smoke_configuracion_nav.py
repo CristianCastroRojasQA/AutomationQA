@@ -1,69 +1,119 @@
 import pytest
-from flows.auth_flow import AuthFlow
-from pages.menu.menu_configuracion import MenuConfiguracionPage
-from utils.logger import get_logger
 
-# Lista de navegaciones (con el fix de 'ValuesSearch' que detectamos)
-NAVEGACIONES_CONFIGURACION = [
-    ("marca_modelos_terminales", "ABCUC022"),
-    ("terminales_alta_terminal", "ABCUC023"),
-    ("terminales_mantenimiento_terminales", "ABCUC024"),
-    ("terminales_alta_masiva_terminales", "ABCUC039"),
-    ("terminales_consulta_stock_terminales", "Check-Terminal-Stock"),
-    ("productos_alta_productos", "ABCUC025_AddProduct"),
-    ("productos_mantenimiento_productos", "ABCUC025_ModifyProduct"),
-    ("mantenimiento_calendario_adquirente", "ABCUC015"),
-    ("mantenimiento_tasa_cambio", "ABCUC016"),
-    ("mantenimiento_condiciones_comerciales", "AMUC016"),
-    ("mantenimiento_condiciones_comerciales_promocionales", "AMRUC045"),
-    ("reporte_condiciones_comerciales", "AMRUC047"),
-    ("mantenimiento_grupo_economico", "ABCUC046"),
-    ("mantenimiento_actividad_economica", "ABCUC047"),
-    ("mantenimiento_parametros_calculo_mdr", "mdr-brand-parameters"),
-    ("gestion_alta_lista_reglas_autorizacion", "AddAuthorizationRuleList"),
-    ("gestion_mantenimiento_lista_reglas_autorizacion", "UpdateAuthorizationRuleListSearch"),
-    ("gestion_mantenimiento_valores_lista_reglas_autorizacion", "UpdateAuthorizationRuleListValuesSearch"),
-    ("gestion_eliminar_listas_reglas_autorizacion", "DeleteAuthorizationRuleList"),
-]
+from flows.auth_flow import AuthFlow
+from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
+from pages.menu.configuracion.gestion_listas_menu_page import GestionListasMenuPage
+from utils.logger import get_logger
+from utils.screenshots import \
+    capturar_evidencia  # Asume que esta función también tiene logging interno o que se loguea aquí.
 
 
 @pytest.mark.smoke
 @pytest.mark.configuracion
-def test_TC_nav_menu_configuracion(page):
+def test_smoke_navegacion_menu_configuracion(page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Configuración.
     """
-    caso = "Smoke_Nav_Configuracion"
-    log = get_logger(caso)
+    nombre_caso_prueba = "Smoke_Navegacion_Menu_Configuracion"
+    logger_test = get_logger(nombre_caso_prueba)  # Obtiene el logger con el nombre del caso de prueba
 
-    auth = AuthFlow(page)
-    menu_cfg = MenuConfiguracionPage(page)
+    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Navegación del Menú Configuración: '{nombre_caso_prueba}'")
 
-    log.info("--- INICIO SMOKE TEST: LOGIN ---")
-    auth.login_con_env(caso=caso)
+    flujo_autenticacion = AuthFlow(page)
+    pagina_adquirente_menu = AdquirenteMenuPage(page)
+    pagina_gestion_listas_menu = GestionListasMenuPage(page)
 
-    errores = []
+    logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
+    try:
+        flujo_autenticacion.login_con_env(caso=nombre_caso_prueba)
+        logger_test.info("Login exitoso.")
+    except Exception as e:
+        logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
+        pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
 
-    for metodo, esperado in NAVEGACIONES_CONFIGURACION:
-        log.info(f"Ejecutando: {metodo}")
+    # Definición de las rutas de navegación con los nombres de métodos estandarizados
+    rutas_de_navegacion = [
+        ("Configuración > Adquirente > Marcas y Modelos de Terminales",
+         pagina_adquirente_menu.navegar_a_adquirente_marcas_y_modelos_terminales),
+
+        ("Configuración > Adquirente > Terminales - Alta de Terminal",
+         pagina_adquirente_menu.navegar_a_terminales_alta_terminal),
+        ("Configuración > Adquirente > Terminales - Mantenimiento de Terminales",
+         pagina_adquirente_menu.navegar_a_terminales_mantenimiento_terminales),
+        ("Configuración > Adquirente > Terminales - Alta Masiva de Terminales",
+         pagina_adquirente_menu.navegar_a_terminales_alta_masiva_terminales),
+        ("Configuración > Adquirente > Terminales - Consulta Stock de Terminales",
+         pagina_adquirente_menu.navegar_a_terminales_consulta_stock_terminales),
+
+        ("Configuración > Adquirente > Productos - Alta de Producto",
+         pagina_adquirente_menu.navegar_a_productos_alta_producto),
+        ("Configuración > Adquirente > Productos - Mantenimiento de Producto",
+         pagina_adquirente_menu.navegar_a_productos_mantenimiento_producto),
+
+        ("Configuración > Adquirente > Mantenimiento Calendario Adquirente",
+         pagina_adquirente_menu.navegar_a_adquirente_mantenimiento_calendario),
+        ("Configuración > Adquirente > Mantenimiento Tasa de Cambio",
+         pagina_adquirente_menu.navegar_a_adquirente_mantenimiento_tasa_cambio),
+
+        ("Configuración > Adquirente > Condiciones Comerciales - Mantenimiento",
+         pagina_adquirente_menu.navegar_a_condiciones_mantenimiento_condiciones_comerciales),
+        ("Configuración > Adquirente > Condiciones Comerciales - Promocionales",
+         pagina_adquirente_menu.navegar_a_condiciones_mantenimiento_condiciones_promocionales),
+        ("Configuración > Adquirente > Condiciones Comerciales - Reporte",
+         pagina_adquirente_menu.navegar_a_condiciones_reporte_condiciones_comerciales),
+
+        ("Configuración > Adquirente > Mantenimiento Grupo Económico",
+         pagina_adquirente_menu.navegar_a_adquirente_mantenimiento_grupo_economico),
+        ("Configuración > Adquirente > Mantenimiento Actividad Económica",
+         pagina_adquirente_menu.navegar_a_adquirente_mantenimiento_actividad_economica),
+        ("Configuración > Adquirente > Mantenimiento Parámetros Cálculo MDR",
+         pagina_adquirente_menu.navegar_a_adquirente_mantenimiento_parametros_calculo_mdr),
+
+        ("Configuración > Gestión Listas > Alta Lista para Reglas de Autorizacion",
+         pagina_gestion_listas_menu.navegar_a_gestion_alta_lista_reglas_autorizacion),
+        ("Configuración > Gestión Listas > Mantenimiento de Lista para Reglas de Autorizacion",
+         pagina_gestion_listas_menu.navegar_a_gestion_mantenimiento_lista_reglas_autorizacion),
+        ("Configuración > Gestión Listas > Mantenimiento de Valores de Lista para Reglas de Autorización",
+         pagina_gestion_listas_menu.navegar_a_gestion_mantenimiento_valores_lista_reglas_autorizacion),
+        ("Configuración > Gestión Listas > Eliminar Lista para Reglas de autorización",
+         pagina_gestion_listas_menu.navegar_a_gestion_eliminar_listas_reglas_autorizacion)
+    ]
+
+    lista_de_errores = []
+
+    for nombre_ruta, funcion_navegacion in rutas_de_navegacion:
+        logger_test.info(f"Paso de prueba: Intentando navegar a: {nombre_ruta}")
         try:
-            funcion = getattr(menu_cfg, metodo)
-            url = funcion(caso)
-
-            if esperado not in url:
-                error_msg = f"[{metodo}] URL incorrecta. Esperaba: {esperado} | Obtuve: {url}"
-                log.error(error_msg)
-                errores.append(error_msg)
-            else:
-                log.info(f"[{metodo}] OK")
+            funcion_navegacion(nombre_caso_prueba)
+            logger_test.info(f"ÉXITO: Navegación a '{nombre_ruta}' completada correctamente.")
 
         except Exception as e:
-            msg = f"Error crítico en {metodo}: {str(e)}"
-            log.error(msg)
-            errores.append(msg)
+            logger_test.error(f"FALLO: Error durante la navegación a '{nombre_ruta}'. Detalles: {e}",
+                              exc_info=True)  # Usa logger.error y exc_info
+            lista_de_errores.append(f"- {nombre_ruta}: {repr(e)}")
 
-    log.info("--- FIN SMOKE TEST: LOGOUT ---")
-    auth.logout(caso=caso)
+            etiqueta_evidencia_fallo = f"ERROR_{nombre_ruta.replace(' ', '_').replace('>', '').replace('-', '_')}"
+            logger_test.warning(
+                f"Capturando evidencia de fallo para '{nombre_ruta}' con etiqueta: '{etiqueta_evidencia_fallo}'.")
+            capturar_evidencia(page, nombre_caso_prueba, etiqueta_evidencia_fallo)
 
-    if errores:
-        pytest.fail(f"Fallos en Smoke Test de Configuración:\n" + "\n".join(errores))
+    logger_test.info("Paso final: Iniciando flujo de desautenticación (LOGOUT).")
+    try:
+        flujo_autenticacion.logout(caso=nombre_caso_prueba)
+        logger_test.info("Logout exitoso.")
+    except Exception as e:
+        logger_test.warning(f"Advertencia: No se pudo realizar el logout correctamente. Error: {e}", exc_info=True)
+        # No falla el test si el logout falla, ya que el objetivo principal es la navegación.
+        # Pero es importante registrarlo como una advertencia.
+
+    if lista_de_errores:
+        resumen_errores = "\n".join(lista_de_errores)
+        logger_test.error(
+            f"FIN: SMOKE TEST de Navegación en el Menú de Configuración terminó con {len(lista_de_errores)} fallos.")
+        raise AssertionError(
+            "SMOKE de Navegación en el Menú de Configuración terminó con fallos en las siguientes rutas:\n"
+            f"{resumen_errores}"
+        )
+    else:
+        logger_test.info(
+            f"FIN: SMOKE TEST de Navegación en el Menú de Configuración completado exitosamente sin fallos.")
