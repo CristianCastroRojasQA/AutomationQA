@@ -73,23 +73,31 @@ class AuthFlow:
         """
         self.log.info("INICIO - Logout")
 
-        # Paso 1: Abre el menú de usuario y presiona el enlace técnico de salida
-        self.login_page.salir()
+        # PASO 1: Abrir menú usuario
+        self.login_page.abrir_menu_usuario()
 
-        # Paso 2: Maneja la pantalla de confirmación intermedia de ASP.NET (si aparece)
-        # Esto previene que el test falle si la aplicación a veces pide confirmación y otras no
+        # PASO 2: Confirmar que el menú está abierto (Salir visible) y tomar evidencia
+        self.login_page.wait_visible(self.login_page.opcion_salir, desc="Menú usuario abierto (Opción Salir visible)")
+
+        if caso:
+            # ✅ Evidencia pedida por el equipo: menú abierto antes de salir
+            capturar_evidencia(self.page, caso, "menu_usuario_abierto_antes_salir")
+
+        # PASO 3: Click en Salir
+        self.login_page.click_salir()
+
+        # PASO 4: Confirmación opcional (si aparece)
         acepto = self.login_page.confirmar_logout_si_aparece()
         if acepto:
             self.log.info("Se mostró confirmación de cierre y se presionó 'Aceptar'.")
         else:
             self.log.info("No apareció confirmación 'Aceptar'.")
 
-        # Paso 3: Aserción final para confirmar que el sistema expulsó al usuario correctamente
+        # PASO 5: Validación final: regreso al login
         self.login_page.validar_retorno_login()
         self.log.info("Logout OK: regresó al login.")
 
         if caso:
-            # Captura la evidencia final del proceso de logout
             capturar_evidencia(self.page, caso, "logout_ok")
 
         self.log.info("FIN - Logout OK")
