@@ -17,9 +17,6 @@ class MenuComerciosPage(BasePage):
         self.log.debug(f"Inicializando locators para {self.__class__.__name__}.")
 
         # NIVEL 2: (Sub-dropdown)
-        self.menu_comercios = page.locator("#MERCHANT_KEY")
-        self.log.debug("Locator 'menu_comercios' inicializado.")
-
         self.sub_menu_consultar_comercio = page.locator("#AMUC008_MerchantSearch")
         self.log.debug("Locator 'sub_menu_consultar_comercio' inicializado.")
 
