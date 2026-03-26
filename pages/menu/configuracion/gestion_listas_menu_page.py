@@ -48,7 +48,7 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_gestion_alta_lista_reglas_autorizacion,
                                desc="Link Alta Lista para Reglas de Autorización"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AddAuthorizationRuleList",
             locator_titulo_pagina=self.page.get_by_text("Añadir Lista de Reglas de Autorización", exact=True),
@@ -64,7 +64,7 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_gestion_mantenimiento_lista_reglas_autorizacion,
                                desc="Link Mantenimiento de Lista para Reglas de Autorización"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="UpdateAuthorizationRuleListSearch",
             locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel2']"),
@@ -80,7 +80,7 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_gestion_mantenimiento_valores_lista_reglas_autorizacion,
                                desc="Link Mantenimiento de Valores de Lista para Reglas de Autorización")
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="UpdateAuthorizationRuleListValuesSearch",
             locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel2']"),
@@ -96,7 +96,7 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_gestion_eliminar_lista_reglas_autorizacion,
                                desc="Link Eliminar Lista para Reglas de Autorización")
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="DeleteAuthorizationRuleList",
             locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel2']"),
