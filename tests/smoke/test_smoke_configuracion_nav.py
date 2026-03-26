@@ -4,8 +4,7 @@ from flows.auth_flow import AuthFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
 from pages.menu.configuracion.gestion_listas_menu_page import GestionListasMenuPage
 from utils.logger import get_logger
-from utils.screenshots import \
-    capturar_evidencia  # Asume que esta función también tiene logging interno o que se loguea aquí.
+from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
 
 
 @pytest.mark.smoke
@@ -79,41 +78,16 @@ def test_smoke_navegacion_menu_configuracion(page):
          pagina_gestion_listas_menu.navegar_a_gestion_eliminar_listas_reglas_autorizacion)
     ]
 
-    lista_de_errores = []
-
-    for nombre_ruta, funcion_navegacion in rutas_de_navegacion:
-        logger_test.info(f"Paso de prueba: Intentando navegar a: {nombre_ruta}")
-        try:
-            funcion_navegacion(nombre_caso_prueba)
-            logger_test.info(f"ÉXITO: Navegación a '{nombre_ruta}' completada correctamente.")
-
-        except Exception as e:
-            logger_test.error(f"FALLO: Error durante la navegación a '{nombre_ruta}'. Detalles: {e}",
-                              exc_info=True)  # Usa logger.error y exc_info
-            lista_de_errores.append(f"- {nombre_ruta}: {repr(e)}")
-
-            etiqueta_evidencia_fallo = f"ERROR_{nombre_ruta.replace(' ', '_').replace('>', '').replace('-', '_')}"
-            logger_test.warning(
-                f"Capturando evidencia de fallo para '{nombre_ruta}' con etiqueta: '{etiqueta_evidencia_fallo}'.")
-            capturar_evidencia(page, nombre_caso_prueba, etiqueta_evidencia_fallo)
-
-    logger_test.info("Paso final: Iniciando flujo de desautenticación (LOGOUT).")
     try:
-        flujo_autenticacion.logout(caso=nombre_caso_prueba)
-        logger_test.info("Logout exitoso.")
-    except Exception as e:
-        logger_test.warning(f"Advertencia: No se pudo realizar el logout correctamente. Error: {e}", exc_info=True)
-        # No falla el test si el logout falla, ya que el objetivo principal es la navegación.
-        # Pero es importante registrarlo como una advertencia.
-
-    if lista_de_errores:
-        resumen_errores = "\n".join(lista_de_errores)
-        logger_test.error(
-            f"FIN: SMOKE TEST de Navegación en el Menú de Configuración terminó con {len(lista_de_errores)} fallos.")
-        raise AssertionError(
-            "SMOKE de Navegación en el Menú de Configuración terminó con fallos en las siguientes rutas:\n"
-            f"{resumen_errores}"
+        ejecutar_rutas_navegacion_continua(
+            page=page,
+            nombre_caso_prueba=nombre_caso_prueba,
+            logger_test=logger_test,
+            rutas_de_navegacion=rutas_de_navegacion,
         )
-    else:
-        logger_test.info(
-            f"FIN: SMOKE TEST de Navegación en el Menú de Configuración completado exitosamente sin fallos.")
+    finally:
+        ejecutar_logout_seguro(
+            flujo_autenticacion=flujo_autenticacion,
+            logger_test=logger_test,
+            nombre_caso_prueba=nombre_caso_prueba,
+        )

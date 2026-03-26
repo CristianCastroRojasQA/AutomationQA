@@ -123,7 +123,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_marcas_y_modelos_terminales,
                                desc="Link Marcas y Modelos de Terminales")
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC022",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Marcas y modelos de terminales"),
@@ -137,7 +137,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_alta_terminal, desc="Link Alta de Terminal"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC023",
             locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel']"),
@@ -151,7 +151,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_mantenimiento_terminales, desc="Link Mantenimiento de Terminales")
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC024",
             locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel2']"),
@@ -165,7 +165,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_alta_masiva_terminales, desc="Link Alta Masiva de Terminales"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC039",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Alta Masiva de Terminales"),
@@ -180,7 +180,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_terminales_consulta_stock_terminales,
                                desc="Link Consulta Stock de Terminales"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="Check-Terminal-Stock",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Consulta Stock de Terminales"),
@@ -194,7 +194,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_productos() + [
             lambda: self.click(self.link_producto_alta_producto, desc="Link Alta de Producto"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_AddProduct",
             locator_titulo_pagina=self.page.locator("span[id$='lblTitleStep1']"),
@@ -208,7 +208,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_productos() + [
             lambda: self.click(self.link_producto_mantenimiento_producto, desc="Link Mantenimiento de Producto"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_ModifyProduct",
             locator_titulo_pagina=self.page.locator("span[id$='lblProductSelecionTitle']"),
@@ -224,7 +224,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_calendario,
                                desc="Link Mantenimiento de Calendario Adquirente"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC015",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento de Calendario"),
@@ -239,7 +239,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_tasa_cambio,
                                desc="Link Mantenimiento Tasa de Cambio"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC016",
             locator_titulo_pagina=self.page.locator("span[id$='lbl_title']"),
@@ -255,7 +255,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_mantenimiento_condiciones_comerciales,
                                desc="Link Mantenimiento de Condiciones Comerciales"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMUC016",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Lista de Condiciones Comerciales"),
@@ -271,7 +271,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_mantenimiento_condiciones_promocionales,
                                desc="Link Mantenimiento de Condiciones Promocionales")
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC045",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Condiciones Comerciales Promocionales"),
@@ -286,7 +286,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_reporte_condiciones_comerciales,
                                desc="Link Reporte de Condiciones Comerciales"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC047",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Reporte Condiciones Comerciales"),
@@ -301,7 +301,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_grupo_economico,
                                desc="Link Mantenimiento de Grupo Económico"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC046",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento Grupo Económico"),
@@ -317,7 +317,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_actividad_economica,
                                desc="Link Mantenimiento de Actividad Económica"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC047",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento de Actividad Económica"),
@@ -333,7 +333,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_parametros_calculo_mdr,
                                desc="Link Mantenimiento de Parámetros Cálculo MDR"),
         ]
-        return self._navegar_a_pagina_estandar(
+        return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="mdr-brand-parameters",
             locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento Parámetros Cálculo MDR"),
