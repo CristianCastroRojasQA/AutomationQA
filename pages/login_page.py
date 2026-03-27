@@ -1,93 +1,59 @@
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Page
 from pages.base_page import BasePage
 
 
 class LoginPage(BasePage):
     """
-    Page Object de Login.
-    Responsable ÚNICAMENTE del flujo básico:
-    - Disponibilidad del login
-    - Autenticación
-    - Confirmación de sesión activa
-    - Cierre de sesión
-    - Retorno al login
-
-    Usado EXCLUSIVAMENTE por pruebas Smoke de Login.
+    Page Object de Login: Maneja desde el acceso hasta la confirmación de salida.
     """
 
     def __init__(self, page: Page):
         super().__init__(page, logger_name="LoginPage")
+        self.log.debug(f"Inicializando locators para {self.__class__.__name__}.")
 
-        # =============================================================
-        # SELECTORES DE LOGIN
-        # =============================================================
-
+        # --- LOGIN ---
         self.titulo_login = page.locator("span[id$='LabelLegend']")
         self.input_usuario = page.locator("input[id$='TextBoxUser']")
         self.input_password = page.locator("input[id$='TextBoxPassword']")
         self.btn_ingresar = page.locator("input[id$='ButtonLogInPS']")
 
-        # =============================================================
-        # SELECTORES DE SESIÓN (POST-LOGIN)
-        # =============================================================
-
+        # --- SESIÓN ACTIVA ---
         self.user_welcome = page.locator("span[id$='UserWelcome']")
-        self.user_dropdown: Locator = self.user_welcome.locator("xpath=ancestor::a[1]")
-        self.opcion_salir = page.locator("a[id$='LinkButtonLogOff']")
-        self.btn_confirmar_logout = page.locator("input[id$='ButtonOk']")
+        self.user_dropdown = self.user_welcome.locator("xpath=ancestor::a[1]")
+        self.opcion_salir = page.get_by_role("link", name="Salir", exact=True)
 
-    # =============================================================
-    # ACCIONES Y VALIDACIONES SMOKE LOGIN
-    # =============================================================
+        # --- POST-LOGOUT (Confirmación) ---
+        self.msg_logout_exito = page.locator("span[id$='LabelLogout']")
+        self.btn_aceptar_logout = page.get_by_role("button", name="Aceptar", exact=True)
 
-    def validar_en_login(self):
-        """Valida que el formulario de login esté visible y disponible."""
-        self.wait_visible(self.titulo_login, desc="Título Login")
-        self.wait_visible(self.input_usuario, desc="Input Usuario")
-        self.wait_visible(self.input_password, desc="Input Contraseña")
+        self.log.info(f"Page Object '{self.__class__.__name__}' actualizado con controles Post-Logout.")
+
+    # ------------------------------------------------------------------
+    # Métodos de Navegación
+    # ------------------------------------------------------------------
+    def validar_presencia_login(self):
+        self.wait_visible(self.titulo_login, desc="Título Iniciar Sesión")
         self.wait_visible(self.btn_ingresar, desc="Botón Ingresar")
 
-    def login(self, usuario: str, password: str):
-        """Ejecuta el login técnico con credenciales."""
+    def ejecutar_login_tecnico(self, usuario: str, password: str):
         self.fill(self.input_usuario, usuario, desc="Campo Usuario")
         self.fill(self.input_password, password, desc="Campo Contraseña", mask=True)
         self.click(self.btn_ingresar, desc="Botón Ingresar")
 
-    def validar_home(self) -> str:
-        """
-        Confirma que la sesión quedó activa.
-        Devuelve el nombre del usuario logueado.
-        """
-        self.wait_visible(self.user_welcome, desc="UserWelcome visible")
+    def obtener_nombre_usuario(self) -> str:
+        self.wait_visible(self.user_welcome, desc="UserWelcome")
         return self.user_welcome.inner_text().strip()
 
-    def abrir_menu_usuario(self):
-        """Abre el dropdown del usuario (menú de sesión)."""
-        self.click(self.user_dropdown, desc="Abrir menú usuario")
+    def abrir_menu_perfil(self):
+        self.click(self.user_dropdown, desc="Abrir menú de usuario")
 
-    def click_salir(self):
-        """Hace clic en la opción 'Salir' del dropdown."""
-        self.wait_visible(self.opcion_salir, desc="Opción Salir visible (menú abierto)")
-        self.click(self.opcion_salir, desc="Click en Salir")
+    def click_en_salir(self):
+        self.click(self.opcion_salir, desc="Click en opción Salir")
 
-    def salir(self):
-        """Ejecuta el cierre de sesión desde el menú de usuario."""
-        self.click(self.user_dropdown, desc="Abrir menú usuario")
-        self.wait_visible(self.opcion_salir, desc="Opción Salir visible")
-        self.click(self.opcion_salir, desc="Click en Salir")
+    def confirmar_cierre_sesion(self):
+        """Maneja el clic en 'Aceptar' de la pantalla Post-Logout."""
+        self.wait_visible(self.msg_logout_exito, desc="Mensaje 'Cerrado con éxito'")
+        self.click(self.btn_aceptar_logout, desc="Botón Aceptar (Confirmación Logout)")
 
-    def confirmar_logout_si_aparece(self, timeout_ms: int = 3000) -> bool:
-        """
-        Maneja pantalla opcional de confirmación de logout.
-        No falla el test si no aparece.
-        """
-        try:
-            self.btn_confirmar_logout.wait_for(state="visible", timeout=timeout_ms)
-            self.click(self.btn_confirmar_logout, desc="Confirmar cierre sesión")
-            return True
-        except Exception:
-            return False
-
-    def validar_retorno_login(self):
-        """Confirma que el navegador regresó a la pantalla de login."""
-        self.wait_visible(self.input_usuario, desc="Login visible nuevamente")
+    def validar_retorno_a_login(self):
+        self.wait_visible(self.input_usuario, desc="Input Usuario (Pantalla de Login)")

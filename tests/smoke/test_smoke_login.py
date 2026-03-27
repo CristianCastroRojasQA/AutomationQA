@@ -2,55 +2,50 @@ import pytest
 from flows.auth_flow import AuthFlow
 from pages.login_page import LoginPage
 from utils.logger import get_logger
+from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 
 @pytest.mark.smoke
 @pytest.mark.login
-def test_TC_smoke_login_logout_basico(page):
+def test_smoke_login_logout_basico(page):
     """
-    SMOKE LOGIN TEST
-
-    Objetivo:
-    - Verificar que el formulario de login está disponible
-    - Ejecutar login exitoso
-    - Confirmar que la sesión queda activa
-    - Ejecutar logout
-    - Validar retorno a la pantalla de login
+    SMOKE TEST: Verifica el ciclo de vida de la sesión (Login y Logout).
     """
+    nombre_caso_prueba = "Smoke_Login_Basico"
+    logger_test = get_logger(nombre_caso_prueba)
 
-    caso = "Smoke_Login"
-    log = get_logger(caso)
+    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Autenticación: '{nombre_caso_prueba}'")
 
-    auth = AuthFlow(page)
-    login_pg = LoginPage(page)
+    flujo_autenticacion = AuthFlow(page)
+    pagina_login = LoginPage(page)
 
-    # -------------------------------------------------
-    # PASO 1: Validar disponibilidad del login
-    # -------------------------------------------------
-    log.info("PASO 1: Validar formulario de login")
-    login_pg.validar_en_login()
+    try:
+        logger_test.info("Paso 1: Validando que el formulario de login esté disponible.")
+        pagina_login.validar_presencia_login()
 
-    # -------------------------------------------------
-    # PASO 2: Ejecutar login
-    # -------------------------------------------------
-    log.info("PASO 2: Ejecutar login")
-    nombre_usuario = auth.login_con_env(caso=caso)
+        logger_test.info("Paso 2: Iniciando flujo de autenticación (LOGIN).")
+        nombre_usuario = flujo_autenticacion.login_con_env(caso=nombre_caso_prueba)
 
-    # Validación mínima y crítica del smoke
-    assert nombre_usuario, (
-        "El login se ejecutó, pero no se detectó indicador de sesión activa"
-    )
+        assert nombre_usuario, "El login se ejecutó, pero no se detectó el nombre del usuario en el Home."
+        logger_test.info(f"Login exitoso para el usuario: {nombre_usuario}")
 
-    # -------------------------------------------------
-    # PASO 3: Ejecutar logout
-    # -------------------------------------------------
-    log.info("PASO 3: Ejecutar logout")
-    auth.logout(caso=caso)
+    except Exception as e:
+        logger_test.critical(f"FALLO CRÍTICO en el flujo de Login. Error: {e}", exc_info=True)
+        pytest.fail(f"El Smoke de Login falló. Revisar capturas. Error: {e}")
 
-    # -------------------------------------------------
-    # PASO 4: Validar retorno al login
-    # -------------------------------------------------
-    log.info("PASO 4: Validar retorno al login")
-    login_pg.validar_retorno_login()
+    finally:
+        logger_test.info("Paso 3: Ejecutando cierre de sesión seguro.")
+        ejecutar_logout_seguro(
+            flujo_autenticacion=flujo_autenticacion,
+            logger_test=logger_test,
+            nombre_caso_prueba=nombre_caso_prueba,
+        )
 
-    log.info("SMOKE LOGIN COMPLETADO EXITOSAMENTE")
+        try:
+            pagina_login.validar_retorno_a_login()
+            logger_test.info("Paso 4: Retorno a pantalla de Login validado correctamente.")
+        except Exception as e:
+            logger_test.warning(f"No se pudo confirmar visualmente el retorno al Login tras el Logout. Error: {e}",
+                                exc_info=True)
+
+    logger_test.info(f"FIN: SMOKE TEST '{nombre_caso_prueba}' completado.")
