@@ -9,7 +9,7 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 
 @pytest.mark.smoke
 @pytest.mark.configuracion
-def test_smoke_navegacion_menu_configuracion(page):
+def test_smoke_navegacion_menu_configuracion(auth,page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Configuración.
     """
@@ -18,13 +18,12 @@ def test_smoke_navegacion_menu_configuracion(page):
 
     logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Navegación del Menú Configuración: '{nombre_caso_prueba}'")
 
-    flujo_autenticacion = AuthFlow(page)
     pagina_adquirente_menu = AdquirenteMenuPage(page)
     pagina_gestion_listas_menu = GestionListasMenuPage(page)
 
     logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
     try:
-        flujo_autenticacion.login_con_env(caso=nombre_caso_prueba)
+        auth.login_con_env(caso=nombre_caso_prueba)
         logger_test.info("Login exitoso.")
     except Exception as e:
         logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
@@ -87,7 +86,7 @@ def test_smoke_navegacion_menu_configuracion(page):
         )
     finally:
         ejecutar_logout_seguro(
-            flujo_autenticacion=flujo_autenticacion,
+            flujo_autenticacion=auth,
             logger_test=logger_test,
             nombre_caso_prueba=nombre_caso_prueba,
         )
