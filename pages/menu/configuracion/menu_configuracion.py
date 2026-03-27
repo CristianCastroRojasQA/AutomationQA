@@ -1,7 +1,6 @@
-from playwright.sync_api import Page, Locator
+from playwright.sync_api import Page
 from pages.base_page import BasePage
-from typing import Callable, List
-from utils.screenshots import capturar_evidencia
+from typing import Callable
 
 
 class MenuConfiguracionPage(BasePage):
@@ -13,18 +12,11 @@ class MenuConfiguracionPage(BasePage):
 
     def __init__(self, page: Page, logger_name: str = "MenuConfiguracion"):
         super().__init__(page, logger_name=logger_name)
-        # Locator para el menú principal de Configuración
-        self.link_menu_principal_configuracion = page.locator("#CONFIGURATION_KEY")
+        # Nivel 1: Menú Principal
+        self.link_menu_principal_configuracion = page.get_by_role("link", name="Configuración")
 
     def abrir_menu_configuracion(self):
-        """
-        Hace click en el menú principal de Configuración para desplegar sus opciones.
-        """
         self.click(self.link_menu_principal_configuracion, desc="Menú Configuración Principal")
 
     def _obtener_paso_abrir_menu_configuracion(self) -> Callable[[], None]:
-        """
-        Retorna un callable para el paso de abrir el menú de configuración.
-        Útil para construir secuencias de navegación.
-        """
         return lambda: self.abrir_menu_configuracion()

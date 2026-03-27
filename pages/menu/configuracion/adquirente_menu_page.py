@@ -5,8 +5,6 @@ from pages.menu.configuracion.menu_configuracion import MenuConfiguracionPage
 class AdquirenteMenuPage(MenuConfiguracionPage):
     """
     Representa la sección 'Adquirente' dentro del menú de Configuración.
-    Contiene locators y métodos para interactuar con los sub-menús y enlaces
-    relacionados con la configuración de Adquirente.
     """
 
     def __init__(self, page: Page):
@@ -14,57 +12,73 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         self.log.debug(f"Inicializando locators para {self.__class__.__name__}.")
 
         # NIVEL 2: ADQUIRENTE (Sub-dropdown)
-        self.sub_menu_adquirente = page.locator("#ACQUIRER_CONFIGURATION_KEY")
+        self.sub_menu_adquirente = page.get_by_role("link", name="Adquirente")
         self.log.debug(f"Locator 'sub_menu_adquirente' inicializado.")
 
         # NIVEL 3: Sub-menus y enlaces directos de Adquirente
-        self.link_adquirente_marcas_y_modelos_terminales = page.locator("#ANG_SC_ABCUC022_TTradeAndModel")
+        self.link_adquirente_marcas_y_modelos_terminales = page.get_by_role("link",
+                                                                            name="Marcas y Modelos de Terminales",
+                                                                            exact=True)
         self.log.debug(f"Locator 'link_adquirente_marcas_y_modelos_terminales' inicializado.")
 
         # Sub-menú Terminales
-        self.sub_menu_terminales = page.locator("#TERMINAL_MENU_KEY")
+        self.sub_menu_terminales = page.get_by_role("link", name="Terminales", exact=True)
         self.log.debug(f"Locator 'sub_menu_terminales' inicializado.")
-        self.link_terminales_alta_terminal = page.locator("#ABCUC023_SaveTerminal")
+        self.link_terminales_alta_terminal = page.get_by_role("link", name="Alta de Terminal")
         self.log.debug(f"Locator 'link_terminales_alta_terminal' inicializado.")
-        self.link_terminales_mantenimiento_terminales = page.locator("#ABCUC024_UpdateTerminalSearch")
+        self.link_terminales_mantenimiento_terminales = page.get_by_role("link", name="Mantenimiento de Terminales")
         self.log.debug(f"Locator 'link_terminales_mantenimiento_terminales' inicializado.")
-        self.link_terminales_alta_masiva_terminales = page.locator("#ANG_SC_ABCUC039")
+        self.link_terminales_alta_masiva_terminales = page.get_by_role("link", name="Alta Masiva de Terminales")
         self.log.debug(f"Locator 'link_terminales_alta_masiva_terminales' inicializado.")
-        self.link_terminales_consulta_stock_terminales = page.locator("#ANG_SC_Check-Terminal-Stock")
+        self.link_terminales_consulta_stock_terminales = page.get_by_role("link", name="Consulta Stock de Terminales")
         self.log.debug(f"Locator 'link_terminales_consulta_stock_terminales' inicializado.")
 
         # Sub-menú Producto
-        self.sub_menu_producto = page.locator("#PRODUCT_KEY")
+        self.sub_menu_producto = page.get_by_role("link", name="Producto")
         self.log.debug(f"Locator 'sub_menu_producto' inicializado.")
-        self.link_producto_alta_producto = page.locator("#ABCUC025_AddProduct")
+        self.link_producto_alta_producto = page.get_by_role("link", name="Alta de Producto")
         self.log.debug(f"Locator 'link_producto_alta_producto' inicializado.")
-        self.link_producto_mantenimiento_producto = page.locator("#ABCUC025_ModifyProduct")
+        self.link_producto_mantenimiento_producto = page.get_by_role("link", name="Mantenimiento de Producto")
         self.log.debug(f"Locator 'link_producto_mantenimiento_producto' inicializado.")
 
         # Enlaces directos en Adquirente
-        self.link_adquirente_mantenimiento_calendario = page.locator("#ANG_SC_ABCUC015_AcqCal_Search")
+        self.link_adquirente_mantenimiento_calendario = page.get_by_role("link",
+                                                                         name="Mantenimiento Calendario Adquirente")
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_calendario' inicializado.")
-        self.link_adquirente_mantenimiento_tasa_cambio = page.locator("#ABCUC016_ExchangeRate")
+
+        self.link_adquirente_mantenimiento_tasa_cambio = page.get_by_role("link", name="Mantenimiento Tasa de Cambio")
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_tasa_cambio' inicializado.")
 
         # Sub-menú Condiciones Comerciales
-        self.sub_menu_condiciones_comerciales = page.locator("#SETTLEMENT_MODEL_KEY")
+        self.sub_menu_condiciones_comerciales = page.get_by_role(role="link", name="Condiciones Comerciales",
+                                                                 exact=True)
         self.log.debug(f"Locator 'sub_menu_condiciones_comerciales' inicializado.")
-        self.link_condiciones_mantenimiento_condiciones_comerciales = page.locator("#ANG_SC_AMUC016")
+
+        self.link_condiciones_mantenimiento_condiciones_comerciales = page.get_by_role(role="link",
+                                                                                       name="Mantenimiento Condiciones Comerciales",
+                                                                                       exact=True)
         self.log.debug(f"Locator 'link_condiciones_mantenimiento_condiciones_comerciales' inicializado.")
-        self.link_condiciones_mantenimiento_condiciones_promocionales = page.locator("#ANG_SC_AMRUC045")
+
+        self.link_condiciones_mantenimiento_condiciones_promocionales = page.get_by_role(role="link",
+                                                                                         name="Mantenimiento Condiciones Comerciales Promocionales", )
         self.log.debug(f"Locator 'link_condiciones_mantenimiento_condiciones_promocionales' inicializado.")
-        self.link_condiciones_reporte_condiciones_comerciales = page.locator("#ANG_SC_AMRUC047")
+
+        self.link_condiciones_reporte_condiciones_comerciales = page.get_by_role(role="link",
+                                                                                 name="Reporte Condiciones Comerciales")
         self.log.debug(f"Locator 'link_condiciones_reporte_condiciones_comerciales' inicializado.")
 
         # Enlaces finales de Adquirente
-        self.link_adquirente_mantenimiento_grupo_economico = page.locator("#ANG_SC_ABCUC046")
+        self.link_adquirente_mantenimiento_grupo_economico = page.get_by_role(role="link",
+                                                                              name="Mantenimiento Grupo Económico")
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_grupo_economico' inicializado.")
-        self.link_adquirente_mantenimiento_actividad_economica = page.locator("#ANG_SC_ABCUC047")
+
+        self.link_adquirente_mantenimiento_actividad_economica = page.get_by_role(role="link",
+                                                                                  name="Mantenimiento Actividad Económica", )
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_actividad_economica' inicializado.")
-        # self.link_adquirente_mantenimiento_rango_bines = page.locator("#ANG_SC_BinesRangeMaintenance") # Este locator no estaba en el HTML original, lo mantengo comentado
-        self.link_adquirente_mantenimiento_parametros_calculo_mdr = page.locator("#ANG_SC_mdr-brand-parameters")
+        self.link_adquirente_mantenimiento_parametros_calculo_mdr = page.get_by_role(role="link",
+                                                                                     name="Mantenimiento Parámetros Cálculo MDR")
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_parametros_calculo_mdr' inicializado.")
+
         self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
 
     # ------------------------------------------------------------------
@@ -72,44 +86,24 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_adquirente(self):
-        """
-        Retorna la secuencia de pasos para abrir el menú principal de Configuración
-        y hacer hover sobre el sub-menú 'Adquirente'.
-        """
-        self.log.debug("Obteniendo pasos para navegar al sub-menú 'Adquirente'.")
         return [
             self._obtener_paso_abrir_menu_configuracion(),
             lambda: self.hover(self.sub_menu_adquirente, desc="Sub-menú Adquirente"),
         ]
 
     def _obtener_pasos_para_terminales(self):
-        """
-        Retorna la secuencia de pasos para llegar al sub-menú 'Terminales'.
-        """
-        self.log.debug("Obteniendo pasos para navegar al sub-menú 'Terminales'.")
         return self._obtener_pasos_para_adquirente() + [
             lambda: self.hover(self.sub_menu_terminales, desc="Sub-menú Terminales"),
         ]
 
     def _obtener_pasos_para_productos(self):
-        """
-        Retorna la secuencia de pasos para llegar al sub-menú 'Producto'.
-        """
-        self.log.debug("Obteniendo pasos para navegar al sub-menú 'Producto'.")
         return self._obtener_pasos_para_adquirente() + [
-            lambda: self.hover(self.sub_menu_producto, desc="Sub-menú Productos"),
+            lambda: self.hover(self.sub_menu_producto, desc="Sub-menú Producto"),
         ]
 
     def _obtener_pasos_para_condiciones_comerciales(self):
-        """
-        Retorna la secuencia de pasos para llegar al sub-menú 'Condiciones Comerciales'.
-        """
-        self.log.debug("Obteniendo pasos para navegar al sub-menú 'Condiciones Comerciales'.")
         return self._obtener_pasos_para_adquirente() + [
-            lambda: self.hover(
-                self.sub_menu_condiciones_comerciales,
-                desc="Sub-menú Condiciones Comerciales",
-            ),
+            lambda: self.hover(self.sub_menu_condiciones_comerciales, desc="Sub-menú Condiciones Comerciales"),
         ]
 
     # ------------------------------------------------------------------
@@ -126,7 +120,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC022",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Marcas y modelos de terminales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Marcas y modelos de terminales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Marcas_Modelos_Terminales",
         )
@@ -140,7 +134,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC023",
-            locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel']"),
+            locator_titulo_pagina=self.page.locator("span").get_by_text("Alta de Terminales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Terminales_Alta_Terminal",
         )
@@ -154,7 +148,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC024",
-            locator_titulo_pagina=self.page.locator("span[id$='titlePageLabel2']"),
+            locator_titulo_pagina=self.page.locator("span").get_by_text("Mantenimiento de Terminales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Terminales_Mantenimiento_Terminales",
         )
@@ -168,7 +162,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC039",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Alta Masiva de Terminales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Alta Masiva de Terminales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Terminales_Alta_Masiva_Terminales",
         )
@@ -183,7 +177,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="Check-Terminal-Stock",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Consulta Stock de Terminales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Consulta Stock de Terminales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Terminales_Consulta_Stock_Terminales",
         )
@@ -197,7 +191,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_AddProduct",
-            locator_titulo_pagina=self.page.locator("span[id$='lblTitleStep1']"),
+            locator_titulo_pagina=self.page.locator("span").get_by_text("Consulta de Producto"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Productos_Alta_Producto",
         )
@@ -211,7 +205,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_ModifyProduct",
-            locator_titulo_pagina=self.page.locator("span[id$='lblProductSelecionTitle']"),
+            locator_titulo_pagina=self.page.locator("span").get_by_text("Consulta de Producto"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Productos_Mantenimiento_Producto",
         )
@@ -227,7 +221,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC015",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento de Calendario"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Mantenimiento de Calendario"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Mantenimiento_Calendario",
         )
@@ -242,7 +236,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC016",
-            locator_titulo_pagina=self.page.locator("span[id$='lbl_title']"),
+            locator_titulo_pagina=self.page.locator("span").get_by_text("Mantenimiento Tasa de Cambio"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Mantenimiento_Tasa_Cambio",
         )
@@ -258,7 +252,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMUC016",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Lista de Condiciones Comerciales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Lista de Condiciones Comerciales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Condiciones_Mantenimiento_Condiciones_Comerciales",
         )
@@ -274,7 +268,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC045",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Condiciones Comerciales Promocionales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text(text="Condiciones Comerciales Promocionales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Condiciones_Mantenimiento_Condiciones_Promocionales",
         )
@@ -289,7 +283,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC047",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Reporte Condiciones Comerciales"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text(text="Reporte Condiciones Comerciales"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Condiciones_Reporte_Condiciones_Comerciales"
         )
@@ -304,7 +298,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC046",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento Grupo Económico"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text(text="Mantenimiento Grupo Económico"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Mantenimiento_Grupo_Economico"
         )
@@ -320,7 +314,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC047",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento de Actividad Económica"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text(text="Mantenimiento de Actividad Económica"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Mantenimiento_Actividad_Economica"
         )
@@ -336,7 +330,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="mdr-brand-parameters",
-            locator_titulo_pagina=self.page.get_by_role("heading", name="Mantenimiento Parámetros Cálculo MDR"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text(text="Mantenimiento Parámetros Cálculo MDR"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Adquirente_Mantenimiento_Parametros_Calculo_MDR"
         )
