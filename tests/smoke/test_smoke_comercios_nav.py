@@ -7,7 +7,7 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 
 
 @pytest.mark.smoke
-@pytest.mark.configuracion
+@pytest.mark.comercios
 def test_smoke_navegacion_menu_comercios(page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Comercios.
