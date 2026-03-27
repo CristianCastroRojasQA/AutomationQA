@@ -1,12 +1,11 @@
 import logging
-import os
+from pathlib import Path
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 
 class ColorFormatter(logging.Formatter):
-    """Configura el formato visual de los logs en consola utilizando códigos de color ANSI"""
-
-    # Definición de códigos de colores para la terminal
+    """Configura el formato visual con colores ANSI para la consola."""
     RESET = "\x1b[0m"
     BLUE = "\x1b[34;20m"
     YELLOW = "\x1b[33;20m"
@@ -15,10 +14,8 @@ class ColorFormatter(logging.Formatter):
     GREY = "\x1b[38;20m"
     CYAN_BOLD = "\x1b[36;1m"
 
-    # Estructura base del mensaje de log
     base_format = "%(asctime)s | %(levelname)-8s | %(name)-12s | %(message)s"
 
-    # Mapeo de niveles de log a sus respectivos colores
     FORMATS = {
         logging.DEBUG: GREY + base_format + RESET,
         logging.INFO: BLUE + base_format + RESET,
@@ -28,41 +25,47 @@ class ColorFormatter(logging.Formatter):
     }
 
     def format(self, record):
-        """Aplica un formato especial resaltado para los hitos de inicio y fin de caso"""
-        if "INICIO" in str(record.msg) or "FIN" in str(record.msg):
+        # Resaltado especial para hitos de ejecución
+        if any(word in str(record.msg) for word in ["INICIO", "FIN", "PASO"]):
             log_fmt = self.CYAN_BOLD + self.base_format + self.RESET
         else:
-            log_fmt = self.FORMATS.get(record.levelno)
+            log_fmt = self.FORMATS.get(record.levelno, self.base_format)
 
         formatter = logging.Formatter(log_fmt, datefmt="%H:%M:%S")
         return formatter.format(record)
 
 
 def get_logger(name="QA"):
-    """Inicializa y configura el sistema de logging dual: Consola y Archivo Rotativo"""
+    """
+    Configura un logger profesional que detecta automáticamente la raíz
+    del proyecto y organiza logs por fecha.
+    """
     logger = logging.getLogger(name)
 
-    # Evita la duplicación de handlers si el logger ya fue instanciado
     if not logger.handlers:
         logger.setLevel(logging.INFO)
 
-        # 1. Gestión de directorio de almacenamiento de evidencias textuales
-        log_dir = "logs"
-        os.makedirs(log_dir, exist_ok=True)
-        log_file = os.path.join(log_dir, "ejecucion.log")
+        # --- GESTIÓN DE RUTAS CON PATHLIB ---
+        # Resolvemos la raíz subiendo un nivel desde la carpeta 'utils'
+        root_dir = Path(__file__).resolve().parent.parent
+        log_dir = root_dir / "logs"
+        log_dir.mkdir(parents=True, exist_ok=True)
 
-        # 2. Handler para salida por CONSOLA (Interfaz visual para el usuario)
+        # Creamos un nombre de archivo dinámico por día (ej: ejecucion_2026-03-27.log)
+        today = datetime.now().strftime("%Y-%m-%d")
+        log_file = log_dir / f"ejecucion_{today}.log"
+
+        # 1. Handler para CONSOLA (Con Colores)
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(ColorFormatter())
         logger.addHandler(console_handler)
 
-        # 3. Handler para ARCHIVO con rotación por tamaño (50MB)
-        # maxBytes=50MB: Rota cuando alcance 50MB | backupCount=5: Mantiene 5 archivos viejos
+        # 2. Handler para ARCHIVO (Rotativo y persistente)
+        # 50MB por archivo, mantiene hasta 5 backups
         file_handler = RotatingFileHandler(
-            log_file, maxBytes=52428800, backupCount=5, encoding="utf-8"
+            log_file, maxBytes=50 * 1024 * 1024, backupCount=5, encoding="utf-8"
         )
 
-        # Formato técnico y detallado para persistencia en archivo (sin colores ANSI)
         file_formatter = logging.Formatter(
             "%(asctime)s | %(levelname)-8s | %(name)-12s | %(filename)s:%(lineno)d | %(message)s",
             datefmt="%Y-%m-%d %H:%M:%S",
