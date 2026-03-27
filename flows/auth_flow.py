@@ -7,97 +7,49 @@ from utils.screenshots import capturar_evidencia
 
 class AuthFlow:
     """
-    AuthFlow centraliza el proceso de autenticación:
-    - login (con env o con credenciales directas)
-    - validación de home
-    - logout (con confirmación opcional 'Aceptar' si aparece)
-
-    Mantiene el framework escalable porque evita repetir pasos en cada test.
+    Controla el ciclo de vida de la sesión del usuario.
     """
 
     def __init__(self, page: Page):
-        # Referencia a la página activa para interactuar con el navegador
         self.page = page
-        # Inicializa el logger específico para el flujo de autenticación
         self.log = get_logger("AuthFlow")
-        # Instancia el Page Object de Login para acceder a sus métodos técnicos
         self.login_page = LoginPage(page)
 
-    # -------------------------
-    # LOGIN
-    # -------------------------
     def login_con_env(self, caso: str | None = None) -> str:
-        """
-        Realiza el login extrayendo las credenciales automáticamente del archivo .env.
-        Retorna el nombre del usuario detectado en el Home (UserWelcome).
-        """
-        # Reutiliza el método login() enviando los datos cargados en el objeto settings
         return self.login(settings.USUARIO, settings.PASSWORD, caso=caso)
 
     def login(self, usuario: str, password: str, caso: str | None = None) -> str:
-        """
-        Flujo completo de inicio de sesión con captura de evidencias paso a paso.
-        @param usuario: Username a ingresar.
-        @param password: Password a ingresar.
-        @param caso: Nombre del caso de prueba para organizar las capturas de pantalla.
-        """
-        self.log.info("INICIO - Login")
+        self.log.info("--- INICIO LOGIN ---")
+        self.login_page.validar_presencia_login()
 
-        # Paso 1: Asegura que la página cargó los inputs antes de intentar escribir
-        self.login_page.validar_en_login()
-        if caso:
-            # Captura evidencia de que el formulario de login está presente
-            capturar_evidencia(self.page, caso, "login_visible")
+        if caso: capturar_evidencia(self.page, caso, "login_01_formulario")
 
-        # Paso 2: Ejecuta la acción técnica de llenar campos y presionar 'Ingresar'
-        self.log.info(f"Login con usuario: {usuario}")
-        self.login_page.login(usuario, password)
+        self.login_page.ejecutar_login_tecnico(usuario, password)
 
-        # Paso 3: Verifica que el login fue exitoso buscando el mensaje de bienvenida
-        welcome_text = self.login_page.validar_home()
-        self.log.info(f"Login OK. Welcome: {welcome_text}")
+        user_text = self.login_page.obtener_nombre_usuario()
+        if caso: capturar_evidencia(self.page, caso, "login_02_home")
 
-        if caso:
-            # Captura evidencia del estado exitoso dentro de la aplicación
-            capturar_evidencia(self.page, caso, "home_visible")
+        self.log.info(f"--- LOGIN EXITOSO: {user_text} ---")
+        return user_text
 
-        self.log.info("FIN - Login OK")
-        return welcome_text
-
-    # -------------------------
-    # LOGOUT
-    # -------------------------
     def logout(self, caso: str | None = None):
-        """
-        Flujo completo de cierre de sesión, manejando pasos opcionales y validación final.
-        """
-        self.log.info("INICIO - Logout")
+        """Flujo completo de salida basado en confirmación Post-Logout."""
+        self.log.info("--- INICIO LOGOUT ---")
 
-        # PASO 1: Abrir menú usuario
-        self.login_page.abrir_menu_usuario()
+        # 1. Menú de Usuario
+        self.login_page.abrir_menu_perfil()
+        if caso: capturar_evidencia(self.page, caso, "logout_01_menu_abierto")
 
-        # PASO 2: Confirmar que el menú está abierto (Salir visible) y tomar evidencia
-        self.login_page.wait_visible(self.login_page.opcion_salir, desc="Menú usuario abierto (Opción Salir visible)")
+        # 2. Click en Salir
+        self.login_page.click_en_salir()
 
-        if caso:
-            # ✅ Evidencia pedida por el equipo: menú abierto antes de salir
-            capturar_evidencia(self.page, caso, "menu_usuario_abierto_antes_salir")
+        # 3. Pantalla Intermedia de Confirmación (Aceptar)
+        # Aquí es donde usamos el nuevo HTML
+        if caso: capturar_evidencia(self.page, caso, "logout_02_confirmacion_intermedia")
+        self.login_page.confirmar_cierre_sesion()
 
-        # PASO 3: Click en Salir
-        self.login_page.click_salir()
+        # 4. Verificación final de retorno al Login
+        self.login_page.validar_retorno_a_login()
+        if caso: capturar_evidencia(self.page, caso, "logout_03_retorno_login_ok")
 
-        # PASO 4: Confirmación opcional (si aparece)
-        acepto = self.login_page.confirmar_logout_si_aparece()
-        if acepto:
-            self.log.info("Se mostró confirmación de cierre y se presionó 'Aceptar'.")
-        else:
-            self.log.info("No apareció confirmación 'Aceptar'.")
-
-        # PASO 5: Validación final: regreso al login
-        self.login_page.validar_retorno_login()
-        self.log.info("Logout OK: regresó al login.")
-
-        if caso:
-            capturar_evidencia(self.page, caso, "logout_ok")
-
-        self.log.info("FIN - Logout OK")
+        self.log.info("--- LOGOUT EXITOSO ---")
