@@ -139,7 +139,7 @@ class BasePage:
     def navegar_a_pagina_estandar(
             self,
             pasos_de_navegacion: List[Callable[[], None]],
-            segmento_url_esperado: str,
+            segmento_url_esperado: str | None,
             locator_titulo_pagina: Locator,
             nombre_caso_prueba: str,
             etiqueta_evidencia: str
@@ -147,10 +147,12 @@ class BasePage:
 
         for paso in pasos_de_navegacion:
             paso()
+        """Validar URL si se espera"""
+        if segmento_url_esperado:
+            self.page.wait_for_url(f"**/{segmento_url_esperado}*", timeout=self.URL_TIMEOUT)
+            self.page.wait_for_load_state("networkidle")
 
-        self.page.wait_for_url(f"**/{segmento_url_esperado}*", timeout=self.URL_TIMEOUT)
-        self.page.wait_for_load_state("networkidle")
-
+        """Validación obligatoria de visibilidad"""
         locator_titulo_pagina.wait_for(state="visible", timeout=self.TITLE_TIMEOUT)
         self.page.wait_for_timeout(self.ANIMATION_WAIT)
 
