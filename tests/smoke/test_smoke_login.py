@@ -7,7 +7,7 @@ from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 @pytest.mark.smoke
 @pytest.mark.login
-def test_smoke_login_logout_basico(page):
+def test_smoke_login_logout_basico(auth,page):
     """
     SMOKE TEST: Verifica el ciclo de vida de la sesión (Login y Logout).
     """
@@ -16,7 +16,6 @@ def test_smoke_login_logout_basico(page):
 
     logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Autenticación: '{nombre_caso_prueba}'")
 
-    flujo_autenticacion = AuthFlow(page)
     pagina_login = LoginPage(page)
 
     try:
@@ -24,7 +23,7 @@ def test_smoke_login_logout_basico(page):
         pagina_login.validar_presencia_login()
 
         logger_test.info("Paso 2: Iniciando flujo de autenticación (LOGIN).")
-        nombre_usuario = flujo_autenticacion.login_con_env(caso=nombre_caso_prueba)
+        nombre_usuario = auth.login_con_env(caso=nombre_caso_prueba)
 
         assert nombre_usuario, "El login se ejecutó, pero no se detectó el nombre del usuario en el Home."
         logger_test.info(f"Login exitoso para el usuario: {nombre_usuario}")
@@ -36,7 +35,7 @@ def test_smoke_login_logout_basico(page):
     finally:
         logger_test.info("Paso 3: Ejecutando cierre de sesión seguro.")
         ejecutar_logout_seguro(
-            flujo_autenticacion=flujo_autenticacion,
+            flujo_autenticacion=auth,
             logger_test=logger_test,
             nombre_caso_prueba=nombre_caso_prueba,
         )
