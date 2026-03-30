@@ -1,62 +1,76 @@
-import re
+from datetime import datetime
 from logging import Logger
-from typing import Callable, List, Tuple
-from playwright.sync_api import Page
+from pathlib import Path
+
+from pages.common.error_handler_page import ErrorHandlerPage
 from utils.screenshots import capturar_evidencia
 
 
 def ejecutar_rutas_navegacion_continua(
-        *,
-        page: Page,
-        nombre_caso_prueba: str,
-        logger_test: Logger,
-        rutas_de_navegacion: List[Tuple[str, Callable[[str], str]]],
-) -> None:
-    """
-    Ejecuta rutas de navegación, continúa aunque falle una,
-    y al final falla si hubo errores (con resumen).
-    """
+        page, nombre_caso_prueba, logger_test, rutas_de_navegacion
+):
     lista_de_errores = []
 
     for nombre_ruta, funcion_navegacion in rutas_de_navegacion:
-        logger_test.info(f"Paso de prueba: Intentando navegar a: {nombre_ruta}")
+        logger_test.info(f"--- PASO: Intentando navegar a {nombre_ruta} ---")
+
         try:
-            # Ejecución del paso
+            # 1. EJECUCIÓN NORMAL (Igual que antes)
             funcion_navegacion(nombre_caso_prueba)
-            logger_test.info(f"ÉXITO: Navegación a '{nombre_ruta}' completada correctamente.")
+            logger_test.info(f"ÉXITO: Pantalla '{nombre_ruta}' cargada correctamente.")
 
         except Exception as e:
-            # 1. Registrar el error
-            lista_de_errores.append(f"- {nombre_ruta}: {repr(e)}")
-            logger_test.error(f"FALLO: Error en '{nombre_ruta}'. Detalles: {e}")
+            # 2. SE PRODUJO UN FALLO: ENTRA LA LOGICA DE DISCRIMINACIÓN
+            handler = ErrorHandlerPage(page)
 
-            # 2. Captura de evidencia (Corregido escape de '.')
-            nombre_limpio = re.sub(r'[^\w\-_. ]', '_', nombre_ruta).replace(" ", "_")
-            etiqueta_fallo = f"ERROR_{nombre_limpio}"
-            capturar_evidencia(page, nombre_caso_prueba, etiqueta_fallo)
+            if handler.hay_error():
+                # --- ESCENARIO A: PANTALLA DE ERROR DE PAYSTUDIO ---
+                logger_test.error(f"🚨 DETECTADA PANTALLA DE ERROR EN: {nombre_ruta}")
 
-            # 3. RECUPERACIÓN: Si falla, intentamos recargar
-            logger_test.warning(
-                f"Intentando recargar página para limpiar estado tras fallo en '{nombre_ruta}'..."
-            )
-            page.reload()
-            page.wait_for_load_state("networkidle")
+                # Extraemos el detalle técnico (Stack Trace)
+                detalle = handler.obtener_detalle()
 
-    # --- CIERRE DEL TEST (Fuera del loop) ---
+                # Evidencias (Foto + TXT)
+                timestamp = datetime.now().strftime("%H-%M-%S")
+                capturar_evidencia(page, nombre_caso_prueba, f"ERROR_FUNCIONAL_{nombre_ruta}")
+                _guardar_detalle_error_txt(nombre_caso_prueba, nombre_ruta, detalle, timestamp)
 
+                # Acción de recuperación: Clic en 'Aceptar' para intentar seguir
+                handler.aceptar_y_recuperar()
+
+                lista_de_errores.append(f"{nombre_ruta}: Error de Aplicación (Capturado detalle técnico)")
+
+            else:
+                # --- ESCENARIO B: ERROR TRADICIONAL (TIMEOUT, SELECTOR, ETC) ---
+                # Mantenemos la funcionalidad que ya tenías antes
+                msg_error = f"FALLO TÉCNICO en {nombre_ruta}: {str(e)[:100]}"
+                logger_test.error(msg_error)
+
+                # Captura estándar de fallo
+                capturar_evidencia(page, nombre_caso_prueba, f"FALLO_TECH_{nombre_ruta}")
+
+                # Tu lógica previa de recuperación: Reload
+                logger_test.warning("Recargando página para intentar limpiar estado...")
+                page.reload()
+                page.wait_for_load_state("networkidle")
+
+                lista_de_errores.append(f"{nombre_ruta}: Fallo de Automatización/Timeout")
+
+    # Al finalizar reportamos los errores caidos
     if lista_de_errores:
-        resumen_errores = "\n".join(lista_de_errores)
-        logger_test.error(
-            f"FIN: SMOKE TEST terminó con {len(lista_de_errores)} fallos."
-        )
-        # El raise solo ocurre si la lista tiene algo
-        raise AssertionError(
-            "SMOKE terminó con fallos en las siguientes rutas:\n"
-            f"{resumen_errores}"
-        )
+        import pytest
+        pytest.fail(f"El Smoke Test finalizó con {len(lista_de_errores)} errores:\n" + "\n".join(lista_de_errores))
 
-    # Si llega aquí, es porque lista_de_errores estaba vacía
-    logger_test.info("FIN: SMOKE TEST completado exitosamente sin fallos.")
+
+def _guardar_detalle_error_txt(nombre_caso, ruta, detalle, ts):
+    """Guarda el detalle técnico en la misma carpeta de screenshots."""
+    root = Path(__file__).resolve().parent.parent
+    fecha = datetime.now().strftime("%Y-%m-%d")
+    folder = root / "screenshots" / fecha / nombre_caso
+    folder.mkdir(parents=True, exist_ok=True)
+
+    archivo = folder / f"{ts}_DETALLE_TECNICO.txt"
+    archivo.write_text(f"RUTA: {ruta}\nHORA: {ts}\n\nDETALLE:\n{detalle}", encoding="utf-8")
 
 
 def ejecutar_logout_seguro(

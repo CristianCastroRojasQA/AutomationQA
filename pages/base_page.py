@@ -1,7 +1,11 @@
 # pages/base_page.py
+from datetime import datetime
+from pathlib import Path
 from typing import List, Callable
 
 from playwright.sync_api import Page, Locator, expect
+
+from pages.common.error_handler_page import ErrorHandlerPage
 from utils.logger import get_logger
 from utils.screenshots import capturar_evidencia
 
@@ -159,3 +163,41 @@ class BasePage:
         capturar_evidencia(self.page, nombre_caso_prueba, f"Pantalla_{etiqueta_evidencia}")
         self.log.info(f"Navegación exitosa a {segmento_url_esperado}")
         return self.page.url
+
+    def verificar_y_manejar_error(
+            self,
+            *,
+            nombre_ruta: str,
+            nombre_caso_prueba: str
+    ):
+        """
+        Verifica si apareció la página de error y captura evidencias.
+        """
+        # 1. Corregido: Solo pasamos 'page' si el init de ErrorHandlerPage solo pide page
+        error_page = ErrorHandlerPage(self.page)
+
+        if error_page.hay_error():
+            root_dir = Path(__file__).resolve().parent.parent
+            fecha_hoy = datetime.now().strftime("%Y-%m-%d")
+            evidencia_dir = root_dir / "screenshots" / fecha_hoy / nombre_caso_prueba
+            evidencia_dir.mkdir(parents=True, exist_ok=True)
+
+            # 3. Corregido: Si 'guardar_evidencias' no existe en la clase,
+            # usamos nuestras utilidades globales aquí directamente.
+            detalle = error_page.obtener_detalle()
+            timestamp = datetime.now().strftime("%H-%M-%S")
+
+            # Captura PNG
+            capturar_evidencia(self.page, nombre_caso_prueba, f"PAGINA_ERROR_{nombre_ruta}")
+
+            # Captura TXT (Detalle técnico)
+            txt_path = evidencia_dir / f"{timestamp}_DETALLE_TECNICO.txt"
+            txt_path.write_text(f"Ruta: {nombre_ruta}\n\nDetalle:\n{detalle}", encoding="utf-8")
+
+            # 4. Recuperación
+            error_page.aceptar_y_recuperar()
+
+            raise AssertionError(
+                f"Página de error detectada en navegación: {nombre_ruta}. "
+                f"Evidencia guardada en: {evidencia_dir}"
+            )
