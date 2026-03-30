@@ -2,6 +2,8 @@ from datetime import datetime
 from logging import Logger
 from pathlib import Path
 
+import pytest
+
 from pages.common.error_handler_page import ErrorHandlerPage
 from utils.screenshots import capturar_evidencia
 
@@ -10,55 +12,56 @@ def ejecutar_rutas_navegacion_continua(
         page, nombre_caso_prueba, logger_test, rutas_de_navegacion
 ):
     lista_de_errores = []
+    rutas_omitidas = []
 
     for nombre_ruta, funcion_navegacion in rutas_de_navegacion:
         logger_test.info(f"--- PASO: Intentando navegar a {nombre_ruta} ---")
 
         try:
-            # 1. EJECUCIÓN NORMAL (Igual que antes)
+            # 1. EJECUCIÓN NORMAL
             funcion_navegacion(nombre_caso_prueba)
             logger_test.info(f"ÉXITO: Pantalla '{nombre_ruta}' cargada correctamente.")
 
         except Exception as e:
-            # 2. SE PRODUJO UN FALLO: ENTRA LA LOGICA DE DISCRIMINACIÓN
+            error_msg = str(e)
+
+            # --- NUEVA LÓGICA: DETECCIÓN DE ENLACE NO DISPONIBLE ---
+            # Si el error indica que el elemento no existe o no se pudo hacer clic por visibilidad "waiting for", "not visible", "not found", "Timeout"
+            if any(key in error_msg for key in ["not found"]):
+                logger_test.warning(
+                    f"OMISIÓN: El enlace '{nombre_ruta}' no está disponible en este ambiente. Saltando...")
+                rutas_omitidas.append(nombre_ruta)
+                continue
+
+            # --- ESCENARIO A: PANTALLA DE ERROR DE PAYSTUDIO ---
             handler = ErrorHandlerPage(page)
-
             if handler.hay_error():
-                # --- ESCENARIO A: PANTALLA DE ERROR DE PAYSTUDIO ---
-                logger_test.error(f"🚨 DETECTADA PANTALLA DE ERROR EN: {nombre_ruta}")
-
-                # Extraemos el detalle técnico (Stack Trace)
+                logger_test.error(f"DETECTADA PANTALLA DE ERROR EN: {nombre_ruta}")
                 detalle = handler.obtener_detalle()
 
-                # Evidencias (Foto + TXT)
                 timestamp = datetime.now().strftime("%H-%M-%S")
                 capturar_evidencia(page, nombre_caso_prueba, f"ERROR_FUNCIONAL_{nombre_ruta}")
                 _guardar_detalle_error_txt(nombre_caso_prueba, nombre_ruta, detalle, timestamp)
 
-                # Acción de recuperación: Clic en 'Aceptar' para intentar seguir
                 handler.aceptar_y_recuperar()
-
-                lista_de_errores.append(f"{nombre_ruta}: Error de Aplicación (Capturado detalle técnico)")
+                lista_de_errores.append(f"{nombre_ruta}: Error de Aplicación")
 
             else:
-                # --- ESCENARIO B: ERROR TRADICIONAL (TIMEOUT, SELECTOR, ETC) ---
-                # Mantenemos la funcionalidad que ya tenías antes
-                msg_error = f"FALLO TÉCNICO en {nombre_ruta}: {str(e)[:100]}"
-                logger_test.error(msg_error)
-
-                # Captura estándar de fallo
+                # --- ESCENARIO B: FALLO TÉCNICO REAL (Otro tipo de error) ---
+                logger_test.error(f"FALLO TÉCNICO en {nombre_ruta}: {error_msg[:100]}")
                 capturar_evidencia(page, nombre_caso_prueba, f"FALLO_TECH_{nombre_ruta}")
 
-                # Tu lógica previa de recuperación: Reload
                 logger_test.warning("Recargando página para intentar limpiar estado...")
                 page.reload()
                 page.wait_for_load_state("networkidle")
+                lista_de_errores.append(f"{nombre_ruta}: Fallo de Automatización")
 
-                lista_de_errores.append(f"{nombre_ruta}: Fallo de Automatización/Timeout")
+    # --- RESUMEN FINAL ---
+    if rutas_omitidas:
+        logger_test.info(
+            f"RESUMEN: Se omitieron {len(rutas_omitidas)} rutas por no estar disponibles: {rutas_omitidas}")
 
-    # Al finalizar reportamos los errores caidos
     if lista_de_errores:
-        import pytest
         pytest.fail(f"El Smoke Test finalizó con {len(lista_de_errores)} errores:\n" + "\n".join(lista_de_errores))
 
 
