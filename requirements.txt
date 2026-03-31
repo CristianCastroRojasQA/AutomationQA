@@ -6,6 +6,9 @@ playwright==1.40.0
 # Configuration & Environment
 python-dotenv==1.0.0
 
+# Database
+pyodbc
+
 # Optional: For reports and enhanced output
 pytest-html==4.1.1
 pytest-metadata==2.0.4
