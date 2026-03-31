@@ -6,6 +6,7 @@ from typing import List, Callable
 from playwright.sync_api import Page, Locator, expect
 
 from pages.common.error_handler_page import ErrorHandlerPage
+from config.settings import settings
 from utils.logger import get_logger
 from utils.screenshots import capturar_evidencia
 
@@ -18,14 +19,18 @@ class BasePage:
     - SI tiene logs consistentes: para trazabilidad total en la consola.
     """
 
-    URL_TIMEOUT = 15000
-    TITLE_TIMEOUT = 10000
-    ANIMATION_WAIT = 500
+    URL_TIMEOUT = settings.TIMEOUT
+    TITLE_TIMEOUT = settings.TIMEOUT / 2
+    ANIMATION_WAIT = settings.ANIMATION_WAIT
 
     def __init__(self, page: Page, logger_name: str = "BasePage"):
         # Inicializa la página del navegador y el sistema de logs para la clase
         self.page = page
         self.log = get_logger(logger_name)
+
+        # --- COMPONENTES COMUNES (NAVBAR/HEADER) ---
+        self.user_welcome = page.locator("span[id$='UserWelcome']")
+        self.user_dropdown = self.user_welcome.locator("xpath=ancestor::a[1]")
 
     # -------------------------
     # Helpers de espera / estado
@@ -127,18 +132,13 @@ class BasePage:
         self.wait_visible(el, desc)
         el.set_input_files(files)
 
-    """
-    Ejecuta una secuencia de pasos para navegar a una página, espera su carga,
-    captura una evidencia y retorna la URL actual.
+    def abrir_menu_perfil(self):
+        """Despliegue del menu usuario"""
+        self.click(self.user_dropdown, desc="Abrir menú de usuario")
 
-    Args:
-    pasos_de_navegacion: Lista de funciones callable que representan los pasos necesarios para llegar al enlace final (clicks, hovers).
-    segmento_url_esperado: Segmento de la URL esperado para verificar la navegación.
-    locator_titulo_pagina: Locator del elemento que contiene el título de la página.
-    ombre_caso_prueba: Nombre del caso de prueba para la evidencia y logs.
-    etiqueta_evidencia: Etiqueta descriptiva para el nombre del archivo de evidencia.
-    Returns: La URL actual de la página después de la navegación.
-    """
+    def obtener_nombre_usuario(self) -> str:
+        """Obtiene el nombre del usuario logueado desde el Navbar."""
+        return self.get_text(self.user_welcome, desc="Nombre de usuario en Navbar")
 
     def navegar_a_pagina_estandar(
             self,
@@ -148,13 +148,25 @@ class BasePage:
             nombre_caso_prueba: str,
             etiqueta_evidencia: str
     ) -> str:
+        """
+        Ejecuta una secuencia de pasos para navegar a una página, espera su carga,
+        captura una evidencia y retorna la URL actual.
+
+        Args:
+            pasos_de_navegacion: Lista de funciones callable (clicks, hovers).
+            segmento_url_esperado: Segmento de la URL esperado.
+            locator_titulo_pagina: Locator del título de la página destino.
+            nombre_caso_prueba: Nombre del caso para logs/evidencia.
+            etiqueta_evidencia: Etiqueta para el archivo PNG.
+        Returns:
+            La URL actual de la página.
+        """
 
         for paso in pasos_de_navegacion:
             paso()
         """Validar URL si se espera"""
         if segmento_url_esperado:
-            self.page.wait_for_url(f"**/{segmento_url_esperado}*", timeout=self.URL_TIMEOUT)
-            self.page.wait_for_load_state("networkidle")
+            self.page.wait_for_url(f"**/{segmento_url_esperado}*", timeout=self.URL_TIMEOUT, wait_until="networkidle")
 
         """Validación obligatoria de visibilidad"""
         locator_titulo_pagina.wait_for(state="visible", timeout=self.TITLE_TIMEOUT)

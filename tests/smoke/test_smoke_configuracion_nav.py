@@ -1,6 +1,5 @@
 import pytest
 
-from flows.auth_flow import AuthFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
 from pages.menu.configuracion.gestion_listas_menu_page import GestionListasMenuPage
 from utils.logger import get_logger
@@ -9,7 +8,7 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 
 @pytest.mark.smoke
 @pytest.mark.configuracion
-def test_smoke_navegacion_menu_configuracion(auth,page):
+def test_smoke_navegacion_menu_configuracion(auth, page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Configuración.
     """

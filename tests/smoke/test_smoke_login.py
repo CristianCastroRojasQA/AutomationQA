@@ -1,5 +1,5 @@
 import pytest
-from flows.auth_flow import AuthFlow
+
 from pages.login_page import LoginPage
 from utils.logger import get_logger
 from utils.smoke_navigation_runner import ejecutar_logout_seguro
@@ -7,7 +7,7 @@ from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 @pytest.mark.smoke
 @pytest.mark.login
-def test_smoke_login_logout_basico(auth,page):
+def test_smoke_login_logout_basico(auth, page):
     """
     SMOKE TEST: Verifica el ciclo de vida de la sesión (Login y Logout).
     """

@@ -1,4 +1,5 @@
 import pytest
+
 from pages.common.perfil_page import PerfilPage
 from utils.logger import get_logger
 from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
