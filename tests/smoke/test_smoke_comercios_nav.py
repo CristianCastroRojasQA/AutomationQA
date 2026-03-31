@@ -1,6 +1,5 @@
 import pytest
 
-from flows.auth_flow import AuthFlow
 from pages.menu.comercios.menu_comercios import MenuComerciosPage
 from utils.logger import get_logger
 from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
@@ -8,7 +7,7 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 
 @pytest.mark.smoke
 @pytest.mark.comercios
-def test_smoke_navegacion_menu_comercios(auth,page):
+def test_smoke_navegacion_menu_comercios(auth, page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Comercios.
     """

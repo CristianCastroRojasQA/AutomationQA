@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from datetime import datetime
 from playwright.sync_api import Page
@@ -36,9 +37,12 @@ def capturar_evidencia(page: Page, nombre_caso: str, nombre_paso: str) -> None:
         # Timestamp detallado (Hora-Minuto-Segundo)
         timestamp = datetime.now().strftime("%H-%M-%S")
 
+        # SANITIZACIÓN: Reemplazar caracteres no permitidos en archivos por guion bajo
+        nombre_paso_limpio = re.sub(r'[<>:"/\\|?*]', '_', nombre_paso)
+
         # Nombre del archivo: 14-30-05_Paso_X.png
         # Usamos el operador '/' de pathlib para unir la ruta y el nombre
-        path_captura = folder_caso / f"{timestamp}_{nombre_paso}.png"
+        path_captura = folder_caso / f"{timestamp}_{nombre_paso_limpio}.png"
 
         # ---------------------------------------------------------
         # 3. CAPTURA NATIVA DE PLAYWRIGHT

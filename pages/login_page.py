@@ -18,8 +18,6 @@ class LoginPage(BasePage):
         self.btn_ingresar = page.locator("input[id$='ButtonLogInPS']")
 
         # --- SESIÓN ACTIVA ---
-        self.user_welcome = page.locator("span[id$='UserWelcome']")
-        self.user_dropdown = self.user_welcome.locator("xpath=ancestor::a[1]")
         self.opcion_salir = page.get_by_role("link", name="Salir", exact=True)
 
         # --- POST-LOGOUT (Confirmación) ---
@@ -39,13 +37,6 @@ class LoginPage(BasePage):
         self.fill(self.input_usuario, usuario, desc="Campo Usuario")
         self.fill(self.input_password, password, desc="Campo Contraseña", mask=True)
         self.click(self.btn_ingresar, desc="Botón Ingresar")
-
-    def obtener_nombre_usuario(self) -> str:
-        self.wait_visible(self.user_welcome, desc="UserWelcome")
-        return self.user_welcome.inner_text().strip()
-
-    def abrir_menu_perfil(self):
-        self.click(self.user_dropdown, desc="Abrir menú de usuario")
 
     def click_en_salir(self):
         self.click(self.opcion_salir, desc="Click en opción Salir")

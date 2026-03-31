@@ -28,6 +28,7 @@ class Settings:
     BROWSER = os.getenv("BROWSER", "chromium")
     HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
     TIMEOUT = int(os.getenv("TIMEOUT", "30000"))
+    ANIMATION_WAIT = int(os.getenv("ANIMATION_WAIT", "500"))
     SCREENSHOT_ON_FAIL = os.getenv("SCREENSHOT_ON_FAIL", "true").lower() == "true"
     TRACE_ON_FAIL = os.getenv("TRACE_ON_FAIL", "true").lower() == "true"
 

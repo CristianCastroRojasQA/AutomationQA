@@ -7,7 +7,7 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 
 @pytest.mark.smoke
 @pytest.mark.batches
-def test_smoke_navegacion_menu_batches(auth,page):
+def test_smoke_navegacion_menu_batches(auth, page):
     """
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas (grupos) del menú Batches.
     """

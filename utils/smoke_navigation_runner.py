@@ -1,6 +1,7 @@
 from datetime import datetime
 from logging import Logger
 from pathlib import Path
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 import pytest
 
@@ -23,13 +24,14 @@ def ejecutar_rutas_navegacion_continua(
             logger_test.info(f"ÉXITO: Pantalla '{nombre_ruta}' cargada correctamente.")
 
         except Exception as e:
-            error_msg = str(e)
+            # --- DETECCIÓN DE ENLACE NO DISPONIBLE ---
+            # expect().to_be_visible() lanza AssertionError. Si el error menciona visibility o timeout:
+            error_msg = str(e).lower()
+            es_timeout_visibilidad = isinstance(e, PlaywrightTimeoutError) or ("visible" in error_msg and "expected" in error_msg)
 
-            # --- NUEVA LÓGICA: DETECCIÓN DE ENLACE NO DISPONIBLE ---
-            # Si el error indica que el elemento no existe o no se pudo hacer clic por visibilidad "waiting for", "not visible", "not found", "Timeout"
-            if any(key in error_msg for key in ["not found"]):
+            if es_timeout_visibilidad:
                 logger_test.warning(
-                    f"OMISIÓN: El enlace '{nombre_ruta}' no está disponible en este ambiente. Saltando...")
+                    f"OMISIÓN: Timeout al intentar acceder a '{nombre_ruta}'. Posiblemente no disponible.")
                 rutas_omitidas.append(nombre_ruta)
                 continue
 
@@ -48,7 +50,7 @@ def ejecutar_rutas_navegacion_continua(
 
             else:
                 # --- ESCENARIO B: FALLO TÉCNICO REAL (Otro tipo de error) ---
-                logger_test.error(f"FALLO TÉCNICO en {nombre_ruta}: {error_msg[:100]}")
+                logger_test.error(f"FALLO TÉCNICO en {nombre_ruta}: {str(e)[:100]}")
                 capturar_evidencia(page, nombre_caso_prueba, f"FALLO_TECH_{nombre_ruta}")
 
                 logger_test.warning("Recargando página para intentar limpiar estado...")

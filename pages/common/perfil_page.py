@@ -1,17 +1,17 @@
 from datetime import datetime
 
 from playwright.sync_api import Page
-from pages.login_page import LoginPage
+from pages.base_page import BasePage
 from utils.screenshots import capturar_evidencia
 
 
-class PerfilPage(LoginPage):
+class PerfilPage(BasePage):
     """
     Maneja las opciones del menú de usuario.
     """
 
     def __init__(self, page: Page):
-        super().__init__(page)
+        super().__init__(page, logger_name="PerfilPage")
 
         # Fecha de Negocio
         self.link_trigger_fecha = page.locator("a[href='#businessDateControl']")
@@ -28,7 +28,9 @@ class PerfilPage(LoginPage):
         self.lbl_version_app = self.modal_about.locator("span[id$='AssemblyFileVersionAttribute']")
         self.btn_cerrar_modal_version = self.modal_about.locator("#ctl00_lblCloseButton")
 
-    def validar_fecha_negocio_modal(self, nombre_caso: str, timeout=3000):
+    def validar_fecha_negocio_modal(self, nombre_caso: str, timeout: int = None):
+        """Valida que el modal de fecha de negocio se despliegue correctamente."""
+        timeout = timeout or self.TITLE_TIMEOUT
         self.log.info(f"Iniciando navegación a 'Fecha de Negocio' para el caso: '{nombre_caso}'.")
 
         # 1. Abrir el menú de usuario
@@ -56,7 +58,7 @@ class PerfilPage(LoginPage):
         capturar_evidencia(self.page, nombre_caso, "Perfil_Modal_Fecha_Negocio")
         self.log.info("Evidencia capturada: Modal de Fecha de Negocio visible.")
 
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(self.ANIMATION_WAIT)
 
         # 5. Cerrar el modal
         self.log.debug("Cerrando modal de Fecha de Negocio para limpiar el estado del test.")
@@ -77,12 +79,14 @@ class PerfilPage(LoginPage):
         capturar_evidencia(self.page, nombre_caso, "Perfil_Cambiar_Contraseña")
         self.log.info("Evidencia capturada: Perfil_Cambiar Contraseña")
 
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(self.ANIMATION_WAIT)
 
         self.page.wait_for_load_state("networkidle")
         self.wait_visible(self.user_welcome, desc="User Welcome en nueva página")
 
-    def validar_version_ambiente(self, nombre_caso: str, timeout=3000):
+    def validar_version_ambiente(self, nombre_caso: str, timeout: int = None):
+        """Captura y valida la versión del sistema en el modal Acerca De."""
+        timeout = timeout or self.TITLE_TIMEOUT
         self.log.info("Iniciando captura de versión del ambiente (Acerca De).")
 
         self.log.info("Abriendo menú de perfil del usuario.")
@@ -105,7 +109,7 @@ class PerfilPage(LoginPage):
         capturar_evidencia(self.page, nombre_caso, "Modal_Version_Ambiente")
 
         self.log.info("Manteniendo modal de versión abierto por 2 segundos...")
-        self.page.wait_for_timeout(2000)
+        self.page.wait_for_timeout(self.ANIMATION_WAIT * 2)
 
         # 6. Cerrar y Limpiar
         self.btn_cerrar_modal_version.click()
