@@ -5,14 +5,12 @@ load_dotenv()
 
 
 class Settings:
-    # 1. Obtenemos qué queremos probar hoy
+    # 1. Identificación del entorno
     PROYECTO = os.getenv("PROYECTO", "BPAGOS").upper()
     AMBIENTE = os.getenv("AMBIENTE", "CERT").upper()
-
-    # 2. Construimos el PREFIJO dinámico
     _prefix = f"{PROYECTO}_{AMBIENTE}"
 
-    # 3. Capturamos los datos usando el prefijo
+    # 2. Datos de Aplicación (Web)
     URL = os.getenv(f"{_prefix}_URL")
     USUARIO = os.getenv(f"{_prefix}_USER")
     PASSWORD = os.getenv(f"{_prefix}_PASS")
@@ -24,7 +22,16 @@ class Settings:
             f"Asegúrate de tener {_prefix}_URL, {_prefix}_USER y {_prefix}_PASS configurados."
         )
 
-    # 5. Configuración técnica (se mantiene igual)
+    # 3. Datos de Base de Datos
+    DB_SERVER = os.getenv("SERVER_NAME")
+    DB_USER = os.getenv("SESION_START")
+    DB_PASS = os.getenv("PASSWORD")
+    DB_NAME = os.getenv(f"{_prefix}_DB")
+
+    if not DB_NAME or not DB_SERVER:
+        raise ValueError(f"❌ ERROR: Configuración de DB no encontrada para {_prefix}")
+
+    # 4. Configuración Técnica
     BROWSER = os.getenv("BROWSER", "chromium")
     HEADLESS = os.getenv("HEADLESS", "false").lower() == "true"
     TIMEOUT = int(os.getenv("TIMEOUT", "30000"))
