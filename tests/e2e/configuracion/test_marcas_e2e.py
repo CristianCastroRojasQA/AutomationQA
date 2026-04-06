@@ -2,7 +2,7 @@ import pytest
 
 from flows.marcas_flow import MarcasFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
-from repository.adquirente.marcas_repository import MarcasRepository
+from repository.configuracion.adquirente.marcas_repository import MarcasRepository
 from utils.logger import get_logger
 from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
