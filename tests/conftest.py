@@ -88,8 +88,22 @@ def pytest_runtest_makereport(item, call):
 # HOOK: CONEXION A LA BASE DE DATOS
 # ======================================================================
 
+# ======================================================================
+# FIXTURES DE BASE DE DATOS
+# ======================================================================
+
+@pytest.fixture(scope="session")
+def db_instance():
+    """
+    Entrega la instancia global del db_manager para ser usada en los tests.
+    """
+    return db_manager
+
+
 @pytest.fixture(scope="session", autouse=True)
-def check_db_health():
+def check_db_health(db_instance):
     """Antes de cualquier test, verifica que la DB responda."""
-    if not db_manager.validar_conexion():
+    log.info(f"Verificando salud de la base de datos: {settings.DB_NAME}")
+    if not db_instance.validar_conexion():
         pytest.exit(f"CRÍTICO: La base de datos '{settings.DB_NAME}' no responde. Abortando ejecución.")
+    return True
