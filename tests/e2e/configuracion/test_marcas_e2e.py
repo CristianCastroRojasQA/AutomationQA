@@ -48,11 +48,19 @@ class TestMarcasE2E:
         logger_test.info(f"--- INICIO DE PRUEBA: {nombre_caso_prueba} ---")
 
         try:
+            # 1. Login y Navegación
             flujo = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            repo = MarcasRepository(db_instance)
 
+            # 2. Importacion de Repos
+            repo = MarcasRepository(
+                db_manager=db_instance,
+                nombre_caso_prueba=nombre_caso_prueba
+            )
+
+            # 3. Generar nombre de marca único
             nombre_test = flujo.marca_unica("E2E_ALTA_BAJA")
 
+            # 3. Ejecutar flujo de validación
             resultado = flujo.flujo_alta_y_baja_con_auditoria_db(
                 nombre_marca=nombre_test,
                 logger=logger_test,
@@ -60,14 +68,13 @@ class TestMarcasE2E:
                 repo_db=repo
             )
 
+            # 4. Aserción final
             assert resultado
-            logger_test.info(f"--- PRUEBA FINALIZADA CON ÉXITO ---")
-
+            logger_test.info(f"--- PRUEBA FINALIZADA EXITOSAMENTE: {nombre_caso_prueba} ---")
 
         finally:
             ejecutar_logout_seguro(
                 flujo_autenticacion=auth,
                 logger_test=logger_test,
                 nombre_caso_prueba=nombre_caso_prueba
-
             )

@@ -3,6 +3,7 @@ from playwright.sync_api import expect
 
 from pages.configuracion.adquirente.marcas_page import MarcasPage
 from utils.screenshots import capturar_evidencia
+from utils.sql_evidence import capturar_evidencia_sql
 
 
 class MarcasFlow:
@@ -465,6 +466,14 @@ class MarcasFlow:
         marca_db = repo_db.obtener_marca(nombre_marca)
         assert marca_db, f"Fallo Crítico: '{nombre_marca}' no se encontró en DB tras el alta."
 
+        capturar_evidencia_sql(
+            nombre_caso=nombre_caso,
+            nombre_paso="01_SQL_Validacion_Alta_Marca",
+            query=repo_db.SELECT_MARCA_BY_NOMBRE,
+            params=[nombre_marca],
+            resultado=f"REGISTRO_ENCONTRADO ID={marca_db['ID_MARCA']}"
+        )
+
         logger.info(f"Confirmado en DB: ID {marca_db['ID_MARCA']}")
 
         # ==========================================================
@@ -482,6 +491,14 @@ class MarcasFlow:
 
         # Validación de ausencia en DB (Llamada limpia: solo el nombre)
         check_baja = repo_db.obtener_marca(nombre_marca)
-
         assert not check_baja, f"Fallo: La marca '{nombre_marca}' persiste en DB tras eliminación."
+
+        capturar_evidencia_sql(
+            nombre_caso=nombre_caso,
+            nombre_paso="02_SQL_Validacion_Baja_Marca",
+            query=repo_db.SELECT_MARCA_BY_NOMBRE,
+            params=[nombre_marca],
+            resultado="SIN_REGISTROS"
+        )
+
         return True
