@@ -1,7 +1,7 @@
 import pytest
 
 # Importaciones de dependencias del proyecto
-from flows.marcas_flow import MarcasFlow
+from flows.configuracion.adquirente.marcas_flow import MarcasFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
 
 from utils.logger import get_logger
