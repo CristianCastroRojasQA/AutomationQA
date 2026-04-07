@@ -1,14 +1,28 @@
-# Core Testing
-pytest==7.4.3
-pytest-playwright==0.4.1
-playwright==1.40.0
+# ==========================================
+# Core Testing Framework
+# ==========================================
+pytest==9.0.3
+pytest-playwright==0.7.2
+playwright==1.58.0
 
+# ==========================================
 # Configuration & Environment
-python-dotenv==1.0.0
+# ==========================================
+python-dotenv==1.2.2
 
-# Database
-pyodbc
+# ==========================================
+# Database Connection
+# ==========================================
+pyodbc==5.3.0
 
-# Optional: For reports and enhanced output
-pytest-html==4.1.1
-pytest-metadata==2.0.4
+# ==========================================
+# Reporting & Metadata
+# ==========================================
+pytest-html==4.2.0
+pytest-metadata==3.1.1
+
+# ==========================================
+# Utilities (Instalados automáticamente)
+# ==========================================
+pytest-base-url==2.1.0
+requests==2.33.1
