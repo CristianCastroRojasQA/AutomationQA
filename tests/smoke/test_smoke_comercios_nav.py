@@ -13,9 +13,6 @@ def test_smoke_navegacion_menu_comercios(auth, page):
     """
     nombre_caso_prueba = "Smoke_Navegacion_Menu_Comercios"
     logger_test = get_logger(nombre_caso_prueba)
-
-    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Navegación del Menú Comercios: '{nombre_caso_prueba}'")
-
     pagina_comercios = MenuComerciosPage(page)
 
     logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
@@ -25,8 +22,6 @@ def test_smoke_navegacion_menu_comercios(auth, page):
     except Exception as e:
         logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
         pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
-
-    # Definición de las rutas de navegación con los nombres de métodos estandarizados
 
     rutas_de_navegacion = [
         ("Comercios > Consultar Comercio / Sucursal",
