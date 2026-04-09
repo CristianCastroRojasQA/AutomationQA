@@ -13,9 +13,6 @@ def test_smoke_login_logout_basico(auth, page):
     """
     nombre_caso_prueba = "Smoke_Login_Basico"
     logger_test = get_logger(nombre_caso_prueba)
-
-    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Autenticación: '{nombre_caso_prueba}'")
-
     pagina_login = LoginPage(page)
 
     try:

@@ -10,10 +10,8 @@ from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ej
 def test_smoke_opciones_perfil(auth, page):
     nombre_caso_prueba = "Smoke_Opciones_Perfil"
     logger_test = get_logger(nombre_caso_prueba)
-
     perfil = PerfilPage(page)
 
-    # 1. Login Obligatorio
     try:
         auth.login_con_env(caso=nombre_caso_prueba)
         logger_test.info("Login exitoso.")
@@ -21,7 +19,6 @@ def test_smoke_opciones_perfil(auth, page):
         logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
         pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
 
-    # 2. Definición de rutas
     rutas_perfil = [
         ("Perfil > Fecha de Negocio", perfil.validar_fecha_negocio_modal),
         ("Perfil > Cambiar Contraseña", perfil.navegar_a_cambiar_contrasena),

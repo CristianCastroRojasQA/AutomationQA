@@ -20,8 +20,6 @@ def test_smoke_navegacion_menu_seguridad(auth, page):
     nombre_caso_prueba = "Smoke_Navegacion_Menu_Seguridad"
     logger_test = get_logger(nombre_caso_prueba)
 
-    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Navegación del Menú Seguridad: '{nombre_caso_prueba}'")
-
     pagina_usuarios_menu = UsuariosMenuPage(page)
     pagina_perfiles_menu = PerfilesMenuPage(page)
     pagina_validacion_menu = ValidacionControlesMenuPage(page)

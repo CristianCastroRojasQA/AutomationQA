@@ -13,9 +13,7 @@ def test_smoke_navegacion_menu_configuracion(auth, page):
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Configuración.
     """
     nombre_caso_prueba = "Smoke_Navegacion_Menu_Configuracion"
-    logger_test = get_logger(nombre_caso_prueba)  # Obtiene el logger con el nombre del caso de prueba
-
-    logger_test.info(f"INICIO: Ejecutando SMOKE TEST de Navegación del Menú Configuración: '{nombre_caso_prueba}'")
+    logger_test = get_logger(nombre_caso_prueba)
 
     pagina_adquirente_menu = AdquirenteMenuPage(page)
     pagina_gestion_listas_menu = GestionListasMenuPage(page)
@@ -28,7 +26,6 @@ def test_smoke_navegacion_menu_configuracion(auth, page):
         logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
         pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
 
-    # Definición de las rutas de navegación con los nombres de métodos estandarizados
     rutas_de_navegacion = [
         ("Configuración > Adquirente > Marcas y Modelos de Terminales",
          pagina_adquirente_menu.navegar_a_adquirente_marcas_y_modelos_terminales),
