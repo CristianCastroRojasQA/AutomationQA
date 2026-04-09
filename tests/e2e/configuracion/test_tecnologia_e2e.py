@@ -1,13 +1,15 @@
 import pytest
 
 from flows.configuracion.adquirente.marcas_flow import MarcasFlow
+from flows.configuracion.adquirente.tecnologia_flow import TecnologiaFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
 from repository.configuracion.adquirente.marcas_repository import MarcasRepository
+from repository.configuracion.adquirente.tecnologias_repository import TecnologiaRepository
 from utils.logger import get_logger
 from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 
-class TestMarcasE2E:
+class TestTecnologiaE2E:
     # ------------------------------------------------------------------
     # Helper para login y navegación
     # ------------------------------------------------------------------
@@ -30,36 +32,36 @@ class TestMarcasE2E:
             nombre_caso_prueba=nombre_caso_prueba
         )
 
-        return MarcasFlow(page)
+        return TecnologiaFlow(page)
 
     @pytest.mark.e2e
     @pytest.mark.db
     @pytest.mark.high
-    @pytest.mark.marcas
-    def test_tc01_validar_alta_y_baja_marca_ui_vs_db(self, auth, page, db_instance):
+    @pytest.mark.tecnologia
+    def test_tc01_validar_alta_y_baja_tecnologia_ui_vs_db(self, auth, page, db_instance):
         """
         TC-01: Ciclo funcional de Alta y Baja validando contra DB usando el Repositorio.
         """
-        nombre_caso_prueba = "TC-MARCAS-01_Alta_Baja_UI_DB"
+        nombre_caso_prueba = "TC-TECNOLOGIA-01_Alta_Baja_UI_DB"
         logger_test = get_logger(nombre_caso_prueba)
 
         try:
             flujo = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            repo_marcas = MarcasRepository(
+            repo_tecnologia = TecnologiaRepository(
                 db_manager=db_instance,
                 nombre_caso_prueba=nombre_caso_prueba
             )
-            marca = flujo.generar_nombre_unico("E2E_MARCA")
+            tecnologia = flujo.generar_nombre_unico("E2E_TECNOLOGIA")
 
             resultado = flujo.flujo_ciclo_completo_con_db(
-                valor=marca,
+                valor=tecnologia,
                 logger=logger_test,
                 nombre_caso=nombre_caso_prueba,
-                repo_db=repo_marcas,
-                query_sql=repo_marcas.SELECT_MARCA_BY_NOMBRE
+                repo_db=repo_tecnologia,
+                query_sql=repo_tecnologia.SELECT_TECNOLOGIA_BY_NOMBRE
 
             )
-            assert resultado, f"Fallo en la validación E2E para la marca: {marca}"
+            assert resultado, f"Fallo en la validación E2E para la tecnología: {tecnologia}"
         finally:
             ejecutar_logout_seguro(
                 flujo_autenticacion=auth,

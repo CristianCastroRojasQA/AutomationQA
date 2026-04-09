@@ -1,16 +1,16 @@
+from abc import ABC, abstractmethod
 from utils.logger import get_logger
 from utils.sql_formatter import format_sql
+import time
 
 logger = get_logger("Repository")
-
-# SQL en DEBUG, no ensucia logs funcionales
 logger.setLevel("DEBUG")
 
 
-class BaseRepository:
+class BaseRepository(ABC):
     """
     Clase base para repositories.
-    Logging SQL compacto: una entrada por consulta.
+    Define el contrato común de persistencia.
     """
 
     @staticmethod
@@ -34,3 +34,35 @@ class BaseRepository:
 
         if resultado:
             logger.debug("Resultado: %s", resultado)
+
+    # ------------------------------------------------------------------
+    # ✅ CONTRATO OBLIGATORIO
+    # ------------------------------------------------------------------
+    @abstractmethod
+    def obtener_registro(self, nombre: str) -> dict | None:
+        """
+        Retorna el registro desde DB o None si no existe.
+        """
+        pass
+
+    # ------------------------------------------------------------------
+    # ✅ Lógica común de infraestructura
+    # ------------------------------------------------------------------
+    def esperar_no_existencia(
+            self,
+            nombre: str,
+            timeout_segundos: int = 15,
+            intervalo_segundos: float = 1.0
+    ) -> bool:
+        """
+        Espera activa hasta que el registro deje de existir en DB.
+        """
+
+        inicio = time.time()
+
+        while time.time() - inicio < timeout_segundos:
+            if not self.obtener_registro(nombre):
+                return True
+            time.sleep(intervalo_segundos)
+
+        return False
