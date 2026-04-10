@@ -44,8 +44,6 @@ class DatabaseManager:
     def validar_conexion(self):
         """
         Realiza un Health Check de la base de datos ejecutando una consulta simple.
-
-        Este método asegura que la conexión y el cursor se cierren correctamente,
         evitando warnings de tipos (NoneType) y fugas de recursos.
 
         Returns:
