@@ -1,3 +1,4 @@
+from typing import Optional
 from playwright.sync_api import Page
 from config.settings import settings
 from pages.login_page import LoginPage
@@ -7,8 +8,10 @@ from utils.screenshots import capturar_evidencia
 
 class AuthFlow:
     """
-    Controla el ciclo de vida de la sesión del usuario (Login/Logout).
-    Adaptado para flujos multi-proyecto y multi-ambiente.
+    Orquestador de alto nivel para el ciclo de vida de la sesión (Login/Logout).
+
+    Esta clase no interactúa con selectores; coordina llamadas a Page Objects
+    y gestiona la lógica de evidencias y logs de auditoría.
     """
 
     def __init__(self, page: Page):
@@ -16,67 +19,80 @@ class AuthFlow:
         self.log = get_logger("AuthFlow")
         self.login_page = LoginPage(page)
 
-    def login_con_env(self, caso: str | None = None) -> str:
-        """Inicia sesión usando las credenciales dinámicas del .env según Proyecto/Ambiente."""
-        return self.login(settings.USUARIO, settings.PASSWORD, caso=caso)
+    def login_con_env(self, caso: Optional[str] = None) -> str:
+        """
+        Inicia sesión utilizando las credenciales inyectadas por el entorno (.env).
 
-    def login(self, usuario: str, password: str, caso: str | None = None) -> str:
-        self.log.info(f"--- PASO: INICIO LOGIN [{settings.PROYECTO} - {settings.AMBIENTE}] ---")
+        Args:
+            caso: Nombre del test para el prefijo de evidencias.
+        """
+        return self.login(settings.USUARIO, settings.PASSWORD, nombre_caso=caso)
+
+    def login(self, usuario: str, password: str, nombre_caso: Optional[str] = None) -> str:
+        """
+        Ejecuta el flujo completo de autenticación con validaciones de seguridad.
+        """
+        self.log.info(f"--- INICIO LOGIN: [{settings.PROYECTO} | {settings.AMBIENTE}] ---")
 
         try:
-            # 1. Validar carga inicial
+            # 1. Preparación y Validación de estado inicial
             self.login_page.validar_presencia_login()
-            if caso:
-                capturar_evidencia(self.page, caso, "login_01_formulario")
+            if nombre_caso:
+                capturar_evidencia(self.page, nombre_caso, "login_01_formulario")
 
-            # 2. Ejecutar acción técnica
-            self.log.info(f"Intentando login con usuario: '{usuario}'")
+            # 2. Interacción técnica
+            self.log.debug(f"Intentando login técnico para el usuario: '{usuario}'")
             self.login_page.ejecutar_login_tecnico(usuario, password)
 
-            # 3. Validar éxito
+            # 3. Validación de post-condición (Acceso al Home)
             user_text = self.login_page.obtener_nombre_usuario()
 
-            if caso:
-                capturar_evidencia(self.page, caso, "login_02_home")
+            if nombre_caso:
+                capturar_evidencia(self.page, nombre_caso, "login_02_home")
 
-            self.log.info(f"--- PASO: LOGIN EXITOSO | Usuario detectado: {user_text} ---")
+            self.log.info(f"--- LOGIN EXITOSO: Sesión activa para [{user_text}] ---")
             return user_text
 
         except Exception as e:
-            self.log.error(f"FALLO CRÍTICO en el proceso de Login: {e}")
-            if caso:
-                capturar_evidencia(self.page, caso, "ERROR_LOGIN")
+            self.log.error(f"FALLO CRÍTICO en el proceso de Login: {str(e)}")
+            if nombre_caso:
+                capturar_evidencia(self.page, nombre_caso, "ERROR_LOGIN")
             raise e
 
-    def logout(self, caso: str | None = None):
-        """Flujo completo de salida basado en la confirmación Post-Logout de PayStudio."""
-        self.log.info("--- PASO: INICIO LOGOUT ---")
+    def logout(self, caso: Optional[str] = None) -> None:
+        """
+        Ejecuta el cierre de sesión asegurando la limpieza de la sesión en el servidor.
+        """
+        self.log.info("--- INICIO CIERRE DE SESIÓN (LOGOUT) ---")
 
         try:
-            # 1. Menú de Usuario
+            # 1. Navegación al menú de usuario
             self.login_page.abrir_menu_perfil()
             if caso:
                 capturar_evidencia(self.page, caso, "logout_01_menu_abierto")
 
-            # 2. Click en Salir
+            # 2. Activación del disparador de salida
+            self.log.debug("Haciendo clic en el botón de salida del menú")
             self.login_page.click_en_salir()
 
-            # 3. Pantalla Intermedia de Confirmación (Click en 'Aceptar')
+            # 3. Gestión de modal de confirmación
             if caso:
                 capturar_evidencia(self.page, caso, "logout_02_confirmacion_intermedia")
 
-            self.log.info("Confirmando cierre de sesión en modal...")
+            self.log.debug("Confirmando cierre de sesión en el modal de sistema")
             self.login_page.confirmar_cierre_sesion()
 
-            # 4. Verificación final de retorno al Login
+            # 4. Validación de fin de sesión (Retorno a Login)
             self.login_page.validar_retorno_a_login()
 
             if caso:
                 capturar_evidencia(self.page, caso, "logout_03_retorno_login_ok")
 
-            self.log.info("--- PASO: LOGOUT EXITOSO ---")
+            self.log.info("--- LOGOUT EXITOSO: Sesión finalizada correctamente ---")
 
         except Exception as e:
-            self.log.warning(f"El proceso de logout no fue limpio o ya se había cerrado la sesión: {e}")
+            # Un fallo en logout no necesariamente debe romper la suite si el test terminó, 
+            # pero debe quedar registrado como advertencia técnica.
+            self.log.warning(f"Logout no completado de forma estándar: {str(e)}")
             if caso:
                 capturar_evidencia(self.page, caso, "ADVERTENCIA_LOGOUT")
