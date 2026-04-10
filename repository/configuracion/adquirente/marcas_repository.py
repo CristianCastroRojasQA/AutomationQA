@@ -21,6 +21,17 @@ class MarcasRepository(BaseRepository):
             UPPER(TRIM({self.COL_NOMBRE})) = UPPER(TRIM(?))
         """
 
+        self.SELECT_MARCA_WITH_RELATION = f"""
+        SELECT DISTINCT
+            M.{self.COL_ID}      AS ID_MARCA,
+            M.{self.COL_NOMBRE}  AS NOMBRE_MARCA
+        FROM
+            {self.TABLE_NAME} M
+        INNER JOIN
+            ABC_MODEL_TECHNOLOGY MT
+            ON MT.ID_TRADE_TECHNOLOGY = M.{self.COL_ID}
+        """
+
     # ------------------------------------------------------------------
     # Implementación del CONTRATO del BaseRepository
     # ------------------------------------------------------------------
@@ -54,6 +65,51 @@ class MarcasRepository(BaseRepository):
                 operacion="SELECT",
                 query=query,
                 params=[nombre],
+                resultado=f"REGISTRO_ENCONTRADO ID={row[0]}"
+            )
+
+            return resultado
+
+        finally:
+            cursor.close()
+            conn.close()
+
+    def obtener_registro_con_relacion(self) -> dict:
+        """
+        Retorna una marca que tenga relación en ABC_MODEL_TECHNOLOGY,
+        es decir, que NO pueda eliminarse por integridad referencial.
+        """
+        query = self.SELECT_MARCA_WITH_RELATION
+        conn = self.db_manager.conectar()
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(query)
+            row = cursor.fetchone()
+
+            if not row:
+                self.log_sql(
+                    modulo="MARCAS",
+                    operacion="SELECT_RELACION",
+                    query=query,
+                    params=[],
+                    resultado="SIN_REGISTROS"
+                )
+                raise AssertionError(
+                    "No se encontró ninguna marca con relación en ABC_MODEL_TECHNOLOGY"
+                )
+
+            resultado = {
+                "ID_REGISTRO": row[0],
+                "NOMBRE_REGISTRO": str(row[1]).strip(),
+                "TIPO": "MARCA"
+            }
+
+            self.log_sql(
+                modulo="MARCAS",
+                operacion="SELECT_RELACION",
+                query=self.SELECT_MARCA_WITH_RELATION,
+                params=[],
                 resultado=f"REGISTRO_ENCONTRADO ID={row[0]}"
             )
 
