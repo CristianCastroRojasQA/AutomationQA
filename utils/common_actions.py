@@ -2,7 +2,7 @@ from logging import Logger
 import pytest
 
 def realizar_login_obligatorio(auth, nombre_test: str, logger: Logger):
-    """Ejecuta el login y detiene todo si falla (Pre-condición crítica)."""
+    """Ejecuta el login y detiene si falla"""
     try:
         auth.login_con_env(caso=nombre_test)
         logger.info("Login exitoso.")
