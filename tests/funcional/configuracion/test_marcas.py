@@ -3,8 +3,9 @@ import pytest
 # Importaciones de dependencias del proyecto
 from flows.configuracion.adquirente.marcas_flow import MarcasFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
+from repository.configuracion.adquirente.marcas_repository import MarcasRepository
+from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 
 @pytest.mark.funcional
@@ -18,18 +19,18 @@ class TestMarcasTerminales:
     @staticmethod
     def _login_y_navegar(auth, page, nombre_caso_prueba, logger_test):
         logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
-        try:
-            auth.login_con_env(caso=nombre_caso_prueba)
-            logger_test.info("Login exitoso.")
-        except Exception as e:
-            logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
-            pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
+        realizar_login_obligatorio(auth, nombre_caso_prueba, logger_test)
 
         logger_test.info("Paso 2: Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
         menu_adquirente = AdquirenteMenuPage(page)
         menu_adquirente.navegar_a_adquirente_marcas_y_modelos_terminales(nombre_caso_prueba=nombre_caso_prueba)
 
         return MarcasFlow(page)
+
+    @staticmethod
+    def _finalizar_test(auth, logger, nombre_caso):
+        """Helper estático para cerrar sesión de forma segura al final de cada test."""
+        finalizar_sesion_segura(auth, logger, nombre_caso)
 
     # ============================================================
     # HIGH SEVERITY
@@ -44,17 +45,9 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("Marca_Alta")
-
-            resultado = flow.flujo_alta_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, f"Error: La marca '{marca}' no se encontró en la grilla tras guardar."
-
-
+            flow.flujo_alta_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc02_campo_marca_obligatorio(self, auth, page):
@@ -64,16 +57,9 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_campo_obligatorio(logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error: El sistema no bloqueó correctamente el campo obligatorio."
-
-
+            flow.flujo_validar_campo_obligatorio(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc03_duplicado_exacto(self, auth, page):
@@ -84,17 +70,10 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             nombre_duplicado = "MARCA_DUPLICADA_TEST"
-            resultado = flow.flujo_validar_duplicado_exacto(valor=nombre_duplicado, logger=logger_test,
-                                                            nombre_caso=nombre_caso_prueba)
-            assert resultado, f"Error: El sistema permitió duplicar la marca '{nombre_duplicado}'."
-
-
+            flow.flujo_validar_duplicado_exacto(valor=nombre_duplicado, logger=logger_test,
+                                                nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc04_duplicado_logico(self, auth, page):
@@ -105,17 +84,11 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca_base = flow.generar_nombre_unico("MARCA_LOGICA")
-            resultado = flow.flujo_validar_duplicado_logico(valor=marca_base, logger=logger_test,
-                                                            nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error en la validación de duplicados lógicos."
-
+            flow.flujo_validar_duplicado_logico(valor=marca_base, logger=logger_test,
+                                                nombre_caso=nombre_caso_prueba)
 
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc05_eliminar_marca(self, auth, page):
@@ -125,36 +98,22 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("BORRAR-TEST")
-            resultado = flow.flujo_eliminar_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, f"Error: La marca '{marca}' aún persiste tras la eliminación."
-
-
+            marca = flow.generar_nombre_unico("MARCAS-BORRAR-TEST")
+            flow.flujo_eliminar_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
-    def test_tc06_no_success_ante_error(self, auth, page):
-        """TC-06: Verificar ausencia de mensaje de éxito ante errores de validación."""
+    def test_tc06_no_persistencia_ante_error(self, auth, page):
+        """TC-06: Verificar registro inválido no persiste antes error de success."""
         nombre_caso_prueba = "TC-MARCAS-06_NoSuccessAnteErrores"
         logger_test = get_logger(nombre_caso_prueba)
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_no_success_ante_error(logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error: Se visualizó un mensaje de éxito con datos inválidos."
-
-
+            flow.flujo_validar_guardar_con_error_no_persistente(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     # ============================================================
     # MEDIUM - SEVERITY
@@ -168,18 +127,10 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("Marca_Local")
-            resultado = flow.flujo_verificar_inclusion_visual_sin_guardar(valor=marca, logger=logger_test,
-                                                                          nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error: El registro no apareció localmente en el grid."
-
-
+            flow.flujo_verificar_inclusion_visual_sin_guardar(logger=logger_test,
+                                                              nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.medium
     def test_tc08_eliminar_sin_seleccion(self, auth, page):
@@ -189,16 +140,10 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            # Nota: Usamos la lógica de aserción directa sobre el estado del botón definida en el flow o page
-            assert flow.ui.es_boton_eliminar_deshabilitado(), "Error: El botón Eliminar no está deshabilitado."
-
-
+            flow.flujo_validar_boton_eliminar_sin_seleccion(logger=logger_test,
+                                                            nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     # ============================================================
     # LOW - SEVERITY
@@ -212,16 +157,9 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_longitud_maxima(logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error: El campo no respetó el límite máximo de caracteres."
-
-
+            flow.flujo_validar_longitud_maxima(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.low
     def test_tc10_persistencia_reload(self, auth, page):
@@ -231,18 +169,11 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("RELOAD")
-            resultado = flow.flujo_validar_persistencia_reload(valor=marca, logger=logger_test,
-                                                               nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error Crítico: El dato se perdió tras el reload."
-
-
+            marca = flow.generar_nombre_unico("MARCAS-RELOAD")
+            flow.flujo_validar_persistencia_reload(valor=marca, logger=logger_test,
+                                                   nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.low
     def test_tc11_texto_mensaje_success(self, auth, page):
@@ -252,15 +183,43 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("MSJ_OK")
-            # El flujo de alta ya verifica la alerta de éxito internamente
-            resultado = flow.flujo_alta_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
-            assert resultado, "Error: No se visualizó el mensaje de éxito esperado."
-
-
+            marca = flow.generar_nombre_unico("MARCAS-MSJ_OK")
+            flow.flujo_validar_texto_mensaje_success(nombre=marca, logger=logger_test,
+                                                     nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba,
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
+
+    @pytest.mark.low
+    def test_tc12_texto_mensaje_warning(self, auth, page):
+        """TC-12: Verificar que el mensaje warnign aparezca tras un registro duplicado."""
+        nombre_caso_prueba = "TC-MARCAS-12_TextoAdvertencia"
+        logger_test = get_logger(nombre_caso_prueba)
+
+        try:
+            flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            marca = flow.generar_nombre_unico("MARCAS-MSJ_DUPLICADO")
+            flow.flujo_validar_texto_mensaje_warning(nombre=marca, logger=logger_test,
+                                                     nombre_caso=nombre_caso_prueba)
+        finally:
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
+
+    @pytest.mark.low
+    def test_tc13_texto_mensaje_error_relacion(self, auth, page, db_instance):
+        """TC-13: Verificar que el mensaje error aparezca tras interntar eliminar un registro relacionado."""
+        nombre_caso_prueba = "TC-MARCAS-13_TextoError"
+        logger_test = get_logger(nombre_caso_prueba)
+
+        try:
+            flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            repo_marcas = MarcasRepository(
+                db_manager=db_instance,
+                nombre_caso_prueba=nombre_caso_prueba
             )
+            flow.flujo_validar_texto_error_eliminar_con_relacion(
+                logger=logger_test,
+                nombre_caso=nombre_caso_prueba,
+                repo_db=repo_marcas,
+                query_sql=repo_marcas.SELECT_MARCA_WITH_RELATION
+            )
+        finally:
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
