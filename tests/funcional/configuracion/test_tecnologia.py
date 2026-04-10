@@ -3,8 +3,9 @@ import pytest
 # Importaciones de dependencias del proyecto
 from flows.configuracion.adquirente.tecnologia_flow import TecnologiaFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
+from repository.configuracion.adquirente.tecnologias_repository import TecnologiaRepository
+from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 
 @pytest.mark.funcional
@@ -18,17 +19,7 @@ class TestTecnologiaTerminales:
     @staticmethod
     def _login_y_navegar(auth, page, nombre_caso_prueba, logger_test):
         logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
-        try:
-            auth.login_con_env(caso=nombre_caso_prueba)
-            logger_test.info("Login exitoso.")
-        except Exception as e:
-            logger_test.critical(
-                f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}",
-                exc_info=True
-            )
-            pytest.fail(
-                f"El test no puede continuar sin un login exitoso. Error: {e}"
-            )
+        realizar_login_obligatorio(auth, nombre_caso_prueba, logger_test)
 
         logger_test.info("Paso 2: Navegación a 'Tecnologías de Terminales'.")
         menu_adquirente = AdquirenteMenuPage(page)
@@ -37,6 +28,11 @@ class TestTecnologiaTerminales:
         )
 
         return TecnologiaFlow(page)
+
+    @staticmethod
+    def _finalizar_test(auth, logger, nombre_caso):
+        """Helper estático para cerrar sesión de forma segura al final de cada test."""
+        finalizar_sesion_segura(auth, logger, nombre_caso)
 
     # ============================================================
     # HIGH SEVERITY
@@ -50,21 +46,9 @@ class TestTecnologiaTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             tecnologia = flow.generar_nombre_unico("TEC_ALTA")
-
-            resultado = flow.flujo_alta_registro(
-                valor=tecnologia,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
-
+            flow.flujo_alta_registro(valor=tecnologia, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc02_campo_tecnologia_obligatorio(self, auth, page):
@@ -73,19 +57,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_campo_obligatorio(
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
-
+            flow.flujo_validar_campo_obligatorio(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc03_duplicado_exacto(self, auth, page):
@@ -94,22 +68,11 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            nombre_duplicado = "TEC_DUPLICADA_TEST"
-
-            resultado = flow.flujo_validar_duplicado_exacto(
-                valor=nombre_duplicado,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
-
+            nombre_duplicado = "TECNOLOGIA_DUPLICADA_TEST"
+            flow.flujo_validar_duplicado_exacto(valor=nombre_duplicado, logger=logger_test,
+                                                nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc04_duplicado_logico(self, auth, page):
@@ -118,22 +81,12 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            tecnologia_base = flow.generar_nombre_unico("TEC_LOGICA")
-
-            resultado = flow.flujo_validar_duplicado_logico(
-                valor=tecnologia_base,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            marca_base = flow.generar_nombre_unico("TECNOLOGIA_LOGICA")
+            flow.flujo_validar_duplicado_logico(valor=marca_base, logger=logger_test,
+                                                nombre_caso=nombre_caso_prueba)
 
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc05_eliminar_tecnologia(self, auth, page):
@@ -142,22 +95,10 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            tecnologia = flow.generar_nombre_unico("BORRAR_TEC")
-
-            resultado = flow.flujo_eliminar_registro(
-                valor=tecnologia,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
-
+            marca = flow.generar_nombre_unico("TECNOLOGIA-BORRAR-TEST")
+            flow.flujo_eliminar_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.high
     def test_tc06_no_success_ante_error(self, auth, page):
@@ -166,18 +107,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_no_success_ante_error(
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            flow.flujo_validar_guardar_con_error_no_persistente(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     # ============================================================
     # MEDIUM SEVERITY
@@ -190,21 +122,10 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            tecnologia = flow.generar_nombre_unico("TEC_LOCAL")
-
-            resultado = flow.flujo_verificar_inclusion_visual_sin_guardar(
-                valor=tecnologia,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            flow.flujo_verificar_inclusion_visual_sin_guardar(logger=logger_test,
+                                                              nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.medium
     def test_tc08_eliminar_sin_seleccion(self, auth, page):
@@ -213,13 +134,10 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            assert flow.ui.es_boton_eliminar_deshabilitado()
+            flow.flujo_validar_boton_eliminar_sin_seleccion(logger=logger_test,
+                                                            nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     # ============================================================
     # LOW SEVERITY
@@ -232,18 +150,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            resultado = flow.flujo_validar_longitud_maxima(
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            flow.flujo_validar_longitud_maxima(logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.low
     def test_tc10_persistencia_reload(self, auth, page):
@@ -252,21 +161,11 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            tecnologia = flow.generar_nombre_unico("TEC_RELOAD")
-
-            resultado = flow.flujo_validar_persistencia_reload(
-                valor=tecnologia,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            marca = flow.generar_nombre_unico("TECNOLOGIA-RELOAD")
+            flow.flujo_validar_persistencia_reload(valor=marca, logger=logger_test,
+                                                   nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
-                nombre_caso_prueba=nombre_caso_prueba
-            )
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
     @pytest.mark.low
     def test_tc11_texto_mensaje_success(self, auth, page):
@@ -275,18 +174,43 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            tecnologia = flow.generar_nombre_unico("TEC_MSJ")
-
-            resultado = flow.flujo_alta_registro(
-                valor=tecnologia,
-                logger=logger_test,
-                nombre_caso=nombre_caso_prueba
-            )
-
-            assert resultado
+            marca = flow.generar_nombre_unico("TEC-MSJ_OK")
+            flow.flujo_validar_texto_mensaje_success(nombre=marca, logger=logger_test,
+                                                     nombre_caso=nombre_caso_prueba)
         finally:
-            ejecutar_logout_seguro(
-                flujo_autenticacion=auth,
-                logger_test=logger_test,
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
+
+    @pytest.mark.low
+    def test_tc12_texto_mensaje_warning(self, auth, page):
+        """TC-12: Verificar que el mensaje warnign aparezca tras un registro duplicado."""
+        nombre_caso_prueba = "TC-TECNOLOGIA-12_TextoAdvertencia"
+        logger_test = get_logger(nombre_caso_prueba)
+
+        try:
+            flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            marca = flow.generar_nombre_unico("TECNO-MSJ_DUPLICADO")
+            flow.flujo_validar_texto_mensaje_warning(nombre=marca, logger=logger_test,
+                                                     nombre_caso=nombre_caso_prueba)
+        finally:
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
+
+    @pytest.mark.low
+    def test_tc13_texto_mensaje_error_relacion(self, auth, page, db_instance):
+        """TC-13: Verificar que el mensaje error aparezca tras interntar eliminar un registro relacionado."""
+        nombre_caso_prueba = "TC-TECNOLOGIA-13_TextoError"
+        logger_test = get_logger(nombre_caso_prueba)
+
+        try:
+            flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            repo_tecnologia = TecnologiaRepository(
+                db_manager=db_instance,
                 nombre_caso_prueba=nombre_caso_prueba
             )
+            flow.flujo_validar_texto_error_eliminar_con_relacion(
+                logger=logger_test,
+                nombre_caso=nombre_caso_prueba,
+                repo_db=repo_tecnologia,
+                query_sql=repo_tecnologia.SELECT_TECNOLOGIA_WITH_RELATION
+            )
+        finally:
+            self._finalizar_test(auth, logger_test, nombre_caso_prueba)
