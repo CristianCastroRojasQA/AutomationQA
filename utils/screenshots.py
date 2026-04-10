@@ -1,7 +1,7 @@
 import re
-from pathlib import Path
 from datetime import datetime
 from playwright.sync_api import Page
+from config.settings import settings
 from utils.logger import get_logger
 
 log = get_logger("Screenshot")
@@ -9,53 +9,28 @@ log = get_logger("Screenshot")
 
 def capturar_evidencia(page: Page, nombre_caso: str, nombre_paso: str) -> None:
     """
-    Captura el contenido del navegador de forma nativa con Playwright
-    organizando las evidencias por Fecha -> Caso -> Hora en la RAÍZ del proyecto.
+    Captura pantalla esperando el tiempo configurado en el .env para asegurar
+    que las animaciones de la interfaz hayan finalizado.
     """
     try:
-        # ---------------------------------------------------------
-        # 1. GESTIÓN DE RUTAS CON PATHLIB
-        # ---------------------------------------------------------
-
-        # Resolvemos la raíz subiendo un nivel desde la carpeta 'utils'
-        root_dir = Path(__file__).resolve().parent.parent
-        screenshot_dir = root_dir / "screenshots"
-
-        # MEJORA: Estructura jerárquica por fecha para no perder historial
+        # 1. Preparar ruta usando settings
         fecha_hoy = datetime.now().strftime("%Y-%m-%d")
-
-        # Ruta final:screenshots/YYYY-MM-DD/Nombre_Caso/
-        folder_caso = screenshot_dir / fecha_hoy / nombre_caso
-
-        # Aseguramos que toda la estructura de carpetas exista (mkdir con pathlib)
+        folder_caso = settings.EVIDENCIAS_DIR / fecha_hoy / nombre_caso
         folder_caso.mkdir(parents=True, exist_ok=True)
 
-        # ---------------------------------------------------------
-        # 2. CONSTRUCCIÓN DEL NOMBRE DEL ARCHIVO
-        # ---------------------------------------------------------
-
-        # Timestamp detallado (Hora-Minuto-Segundo)
+        # 2. Sanitizar nombre del archivo
         timestamp = datetime.now().strftime("%H-%M-%S")
-
-        # SANITIZACIÓN: Reemplazar caracteres no permitidos en archivos por guion bajo
         nombre_paso_limpio = re.sub(r'[<>:"/\\|?*]', '_', nombre_paso)
-
-        # Nombre del archivo: 14-30-05_Paso_X.png
-        # Usamos el operador '/' de pathlib para unir la ruta y el nombre
         path_captura = folder_caso / f"{timestamp}_{nombre_paso_limpio}.png"
 
-        # ---------------------------------------------------------
-        # 3. CAPTURA NATIVA DE PLAYWRIGHT
-        # ---------------------------------------------------------
+        # 3. ESPERA DINÁMICA (Aquí usamos el ajuste de Settings)
+        # Evita que la captura salga con elementos moviéndose o en blanco
+        page.wait_for_timeout(settings.ANIMATION_WAIT)
 
-        # Pequeña espera por seguridad para que la pantalla renderice
-        page.wait_for_timeout(300)
+        # 4. Tomar la captura
+        page.screenshot(path=path_captura, full_page=False)
 
-        # Captura de pantalla nativa (Playwright se encarga de que la página cargue)
-        # Nota: Playwright 1.12+ maneja los paths de pathlib sin problema.
-        page.screenshot(path=path_captura)
-
-        log.info(f"Captura de navegador guardada en: {path_captura}")
+        log.info(f"Screenshot guardado: {path_captura.name}")
 
     except Exception as e:
-        log.error(f"Error crítico al intentar capturar pantalla de evidence: {e}")
+        log.error(f"Error al capturar pantalla: {e}")
