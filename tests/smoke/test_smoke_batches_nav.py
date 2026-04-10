@@ -1,8 +1,9 @@
 import pytest
 
 from pages.menu.batches.menu_batches import MenuBatchesPage
+from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
+from utils.test_orchestrator import TestOrchestrator
 
 
 @pytest.mark.smoke
@@ -12,16 +13,10 @@ def test_smoke_navegacion_menu_batches(auth, page):
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas (grupos) del menú Batches.
     """
     nombre_caso_prueba = "Smoke_Navegacion_Menu_Batches"
-    logger_test = get_logger(nombre_caso_prueba)
+    logger = get_logger(nombre_caso_prueba)
     pagina_batches = MenuBatchesPage(page)
 
-    logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
-    try:
-        auth.login_con_env(caso=nombre_caso_prueba)
-        logger_test.info("Login exitoso.")
-    except Exception as e:
-        logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
-        pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
+    realizar_login_obligatorio(auth, nombre_caso_prueba, logger)
 
     rutas_de_navegacion = [
         ("Batches > Consola de Batches",
@@ -46,16 +41,8 @@ def test_smoke_navegacion_menu_batches(auth, page):
          pagina_batches.navegar_a_grupo_transaccion_adquirente),
     ]
 
+    engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
-        ejecutar_rutas_navegacion_continua(
-            page=page,
-            nombre_caso_prueba=nombre_caso_prueba,
-            logger_test=logger_test,
-            rutas_de_navegacion=rutas_de_navegacion,
-        )
+        engine.ejecutar_flujo(rutas_de_navegacion)
     finally:
-        ejecutar_logout_seguro(
-            flujo_autenticacion=auth,
-            logger_test=logger_test,
-            nombre_caso_prueba=nombre_caso_prueba,
-        )
+        finalizar_sesion_segura(auth, logger, nombre_caso_prueba)
