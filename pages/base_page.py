@@ -16,7 +16,7 @@ class BasePage:
 
     Provee un wrapper sobre la API de Playwright para garantizar que todas las
     interacciones sean trazables (logs), seguras (esperas explícitas) y
-    consistentes en todo el framework.
+    consistentes.
 
     Attributes:
         page (Page): Instancia activa de la página de Playwright.
