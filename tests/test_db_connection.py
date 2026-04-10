@@ -1,36 +1,53 @@
-import sys
 import os
-
-# Añadimos la raíz del proyecto al path para que encuentre los módulos
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from utils.database_manager import db_manager
 from config.settings import settings
+from utils.logger import get_logger
+
+# Se utiliza el logger del proyecto para mantener un formato de salida consistente
+logger = get_logger("DB_Manual_Check")
 
 
 def test_manual_db_connection():
-    print("\n" + "=" * 50)
-    print("🧪 INICIANDO PRUEBA DE CONEXIÓN DINÁMICA")
-    print("=" * 50)
+    """
+    Script de diagnostico para verificar la conexion a la base de datos
+    y la carga correcta de las configuraciones de entorno.
+    """
+    logger.info("-" * 60)
+    logger.info("INICIANDO DIAGNOSTICO DE CONEXION A BASE DE DATOS")
+    logger.info("-" * 60)
 
-    # 1. Validar qué datos leyó Settings
-    print(f"📌 Proyecto Detectado: {settings.PROYECTO}")
-    print(f"📌 Ambiente Detectado: {settings.AMBIENTE}")
-    print(f"📌 Base de Datos a conectar: {settings.DB_NAME}")
-    print(f"📌 Servidor: {settings.DB_SERVER}")
-    print(f"📌 Usuario: {settings.DB_USER}")
-    print("-" * 50)
+    # 1. Diagnostico de Configuracion
+    # Se listan las variables clave para confirmar que Settings leyo correctamente el entorno
+    config_diagnostico = {
+        "Proyecto": settings.PROYECTO,
+        "Ambiente": settings.AMBIENTE,
+        "Servidor": settings.DB_SERVER,
+        "Base de Datos": settings.DB_NAME,
+        "Usuario": settings.DB_USER
+    }
 
-    # 2. Ejecutar la validación del Manager
+    for clave, valor in config_diagnostico.items():
+        if not valor:
+            logger.warning(f"ADVERTENCIA - {clave}: No definido en la configuracion")
+        else:
+            logger.info(f"Configuracion - {clave}: {valor}")
+
+    logger.info("-" * 60)
+
+    # 2. Ejecucion de la Validacion
+    # El DatabaseManager ya gestiona internamente el cierre de la conexion
     resultado = db_manager.validar_conexion()
 
+    # 3. Resultado Final
     if resultado:
-        print("\n✅ PRUEBA EXITOSA: La base de datos está alcanzable y responde.")
+        logger.info("RESULTADO: Conexion exitosa. El ambiente es alcanzable.")
     else:
-        print("\n❌ PRUEBA FALLIDA: Revisa las credenciales, la VPN o el Driver de SQL Server.")
+        logger.error("RESULTADO: Error de conexion.")
+        logger.error("Verificar: 1. Estado de la VPN. 2. Firewall. 3. Credenciales en .env.")
 
-    print("=" * 50 + "\n")
+    logger.info("-" * 60)
 
 
 if __name__ == "__main__":
+    # Nota: Se recomienda ejecutar como modulo: python -m scripts.nombre_archivo
     test_manual_db_connection()
