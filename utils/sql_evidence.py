@@ -1,53 +1,75 @@
-from pathlib import Path
 from datetime import datetime
+from config.settings import settings  # Importación de rutas y entorno centralizado
 from utils.sql_formatter import format_sql
 from utils.logger import get_logger
 
+# Instancia del logger específica para el rastreo de SQL
 log = get_logger("SQLEvidence")
 
 
-def capturar_evidencia_sql(
-        nombre_caso: str,
-        nombre_paso: str,
-        query: str,
-        params=None,
-        resultado=None
-):
+def capturar_evidencia_sql(nombre_caso: str, nombre_paso: str, query: str, params=None, resultado=None):
+    """
+    Genera un archivo técnico (.txt) con la trazabilidad completa de una operación en base de datos.
+
+    Argumentos:
+        nombre_caso (str): Identificador del caso de prueba (ej: TC-MARCAS-01).
+        nombre_paso (str): Descripción corta del paso (ej: 01_Validacion_DB).
+        query (str): La consulta SQL ejecutada (será formateada automáticamente).
+        params (list/tuple, opcional): Parámetros inyectados en la consulta.
+        resultado (any, opcional): El retorno de la base de datos (dict, list o None).
+    """
     try:
-        root_dir = Path(__file__).resolve().parent.parent
-        base_dir = root_dir / "screenshots"
-        fecha = datetime.now().strftime("%Y-%m-%d")
-        folder = base_dir / fecha / nombre_caso
+        # 1. GESTIÓN DE DIRECTORIOS DINÁMICA
+        # Se utiliza settings.EVIDENCIAS_DIR definido en el .env para evitar rutas relativas rotas.
+        fecha_actual = datetime.now().strftime("%Y-%m-%d")
+        folder = settings.EVIDENCIAS_DIR / fecha_actual / nombre_caso
         folder.mkdir(parents=True, exist_ok=True)
 
+        # 2. CONSTRUCCIÓN DEL NOMBRE DEL ARCHIVO
+        # Incluimos timestamp para evitar colisiones si se ejecuta la misma query varias veces.
         ts = datetime.now().strftime("%H-%M-%S")
-        path = folder / f"{ts}_{nombre_paso}.txt"
+        path = folder / f"SQL_{ts}_{nombre_paso}.txt"
 
+        # 3. PREPARACIÓN DEL CONTENIDO
+        # Formateamos el encabezado con datos del entorno para mayor trazabilidad en auditorías.
         contenido = [
             f"TIMESTAMP : {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"PROYECTO  : {settings.PROYECTO}",
+            f"AMBIENTE  : {settings.AMBIENTE}",
             f"CASO      : {nombre_caso}",
-            f"OPERACION : SQL",
-            "",
+            f"PASO      : {nombre_paso}",
+            "-" * 60,
             "QUERY:",
-            format_sql(query),
+            format_sql(query),  # Limpia indentación y normaliza el SQL
             "",
             "PARAMS:"
         ]
 
+        # Manejo dinámico de parámetros de entrada
         if params:
-            for p in params:
-                contenido.append(f"  - {p}")
+            # Si params es una lista/tupla, se desglosa línea por línea
+            if isinstance(params, (list, tuple)):
+                for p in params: contenido.append(f"  - {p}")
+            else:
+                contenido.append(f"  - {params}")
         else:
             contenido.append("  (sin parámetros)")
 
+        # 4. VOLCADO DE RESULTADOS REALES
+        # Se convierte el objeto resultado (diccionario o lista) a string.
+        # Esto permite ver en el TXT exactamente lo que devolvió el motor de DB.
         contenido.extend([
             "",
-            "RESULTADO:",
-            resultado if resultado else "N/A"
+            "RESULTADO EN DB:",
+            str(resultado) if resultado is not None else "N/A"
         ])
 
+        # 5. PERSISTENCIA
         path.write_text("\n".join(contenido), encoding="utf-8")
-        log.info(f"Evidencia SQL guardada en: {path}")
+
+        # Log en nivel INFO para confirmar la creación del artefacto
+        log.info(f"Evidencia SQL generada exitosamente: {path.name}")
 
     except Exception as e:
-        log.error(f"Error al guardar evidencia SQL: {e}")
+        # Captura cualquier error de permisos o escritura para no detener el flujo del test
+        log.error(f"Fallo crítico al intentar guardar evidencia SQL: {e}")
