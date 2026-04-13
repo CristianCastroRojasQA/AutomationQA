@@ -23,10 +23,10 @@ class DatabaseManager:
     def conectar(self):
         """
         Crea y retorna un objeto de conexión pyodbc.
-
         Returns:
             pyodbc.Connection: Objeto de conexión si es exitoso, None si falla.
         """
+        logger.debug(f"Estableciendo conexión pyodbc a {self.server} (DB: {self.database})...")
         try:
             conn_str = (
                 f"DRIVER={self.driver};"
@@ -38,24 +38,30 @@ class DatabaseManager:
             )
             return pyodbc.connect(conn_str)
         except Exception as e:
-            logger.error(f"❌ Error al conectar a la DB {self.database}: {e}")
+            logger.critical(
+                f"FALLO DE RED/ACCESO: No se puede alcanzar el servidor "
+                f"{self.server}. Error: {e}"
+            )
             return None
 
     def validar_conexion(self):
         """
         Realiza un Health Check de la base de datos ejecutando una consulta simple.
         evitando warnings de tipos (NoneType) y fugas de recursos.
-
         Returns:
             bool: True si la conexión y la consulta fueron exitosas, False de lo contrario.
         """
-        logger.info(f"Intentando validar conexión dinámica a: {self.database}...")
+        logger.info(f"INICIO: Health check de base de datos en: {self.database}")
 
         # Obtenemos la conexión
         conexion = self.conectar()
 
         # Validación 1: Verificar que la conexión no sea None para evitar warnings de ContextManager
         if conexion is None:
+            logger.error(
+                f"La conexión retornó None. Revise credenciales para el usuario: "
+                f"{self.username}"
+            )
             return False
 
         try:
@@ -68,13 +74,21 @@ class DatabaseManager:
                     # Validación 2: Verificar que la fila no sea None antes de acceder al índice
                     if row:
                         fecha_db = row[0]
-                        logger.info(f"✅ Conexión EXITOSA. Fecha servidor DB: {fecha_db}")
+                        logger.info(
+                            f"FIN: Conexión validada. Sync con DB exitosa "
+                            f"(Fecha: {fecha_db})"
+                        )
                         return True
-
-            return False
+                    else:
+                        # ⚠️ Caso raro: conexión existe pero sin datos
+                        logger.warning(
+                            "Consulta GETDATE() no retornó datos. "
+                            "El servidor responde pero la sesión es inestable."
+                        )
+                        return False
 
         except Exception as e:
-            logger.error(f"❌ Fallo crítico durante la validación de base de datos: {e}")
+            logger.error(f"Error de ejecución en Health Check: {e}")
             return False
         finally:
             # Aseguramos el cierre manual de la conexión por si el context manager no lo hizo en el fallo
@@ -82,6 +96,7 @@ class DatabaseManager:
                 conexion.close()
             except:
                 pass
+            logger.debug("Recursos de conexión liberados manualmente en DatabaseManager.")
 
 
 # Instancia global lista para ser utilizada en fixtures o tests
