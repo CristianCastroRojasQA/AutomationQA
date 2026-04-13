@@ -30,12 +30,13 @@ class ErrorHandlerPage:
             # DEBUG: No queremos un log cada vez que chequeamos errores en una navegación exitosa.
             is_present = self._lbl_titulo.is_visible(timeout=1500)
             if is_present:
-                # INFO: Solo notificamos si efectivamente encontramos un problema.
-                self.log.info("Pantalla de error detectada en la aplicación.")
+                self.log.error(
+                    f"CRITICAL UI ERROR: Se ha disparado el ErrorHandlerControl. "
+                    f"Título: '{self._lbl_titulo.inner_text()}'"
+                )
             return is_present
         except Exception as e:
-            # DEBUG: Errores de visibilidad aquí son normales si la página no existe.
-            self.log.debug(f"Chequeo de error omitido o interrumpido: {e}")
+            self.log.debug(f"Performance Trace: Timeout de 1500ms agotado sin detectar pantalla de error. {e}")
             return False
 
     def obtener_detalle(self) -> str:
@@ -45,7 +46,7 @@ class ErrorHandlerPage:
         try:
             if self._lbl_detalle.is_visible(timeout=500):
                 detalle = self._lbl_detalle.inner_text().strip()
-                self.log.debug(f"Detalle técnico extraído: {detalle[:50]}...")
+                self.log.debug(f"StackTrace Completo capturado para auditoría: {detalle}")
                 return detalle
         except Exception as e:
             self.log.debug(f"Fallo al extraer metadatos del error: {e}")
@@ -56,11 +57,9 @@ class ErrorHandlerPage:
         """
         Intenta cerrar el diálogo de error y restablecer el estado de la página.
         """
-        # WARNING/INFO: Este es un evento de recuperación, es importante que resalte.
-        self.log.warning("Ejecutando acción de recuperación: Presionando 'Aceptar' en ErrorHandler.")
-
+        self.log.info("Intentando recuperar sesión tras error de sistema. Redireccionando...")
         self._btn_ok.click()
-
+        self.log.warning("El botón 'Aceptar' del ErrorHandler fue presionado. Estado de la aplicación: Inestable.")
         # DEBUG: Espera técnica de red.
         self.log.debug("Esperando estabilización de red post-recuperación...")
         self.page.wait_for_load_state("networkidle")
