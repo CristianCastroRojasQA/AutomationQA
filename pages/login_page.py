@@ -32,14 +32,18 @@ class LoginPage(BasePage):
 
     def validar_presencia_login(self) -> None:
         """Verifica que los elementos críticos del login estén listos para interactuar."""
-        self.log.debug("Validando presencia de componentes de login...")
+        self.log.info("Esperando carga de la pantalla de Login...")
         self.wait_visible(self._titulo_login, desc="Título Iniciar Sesión")
         self.wait_visible(self._btn_ingresar, desc="Botón Ingresar")
+        self.log.debug(
+            f"Componentes de login detectados usando selectores: "
+            f"{self._titulo_login}, {self._btn_ingresar}"
+        )
 
     def validar_retorno_a_login(self) -> None:
         """Confirma que el flujo de salida terminó exitosamente en la pantalla de acceso."""
-        self.log.debug("Validando redirección a pantalla de login tras logout.")
         self.wait_visible(self._input_usuario, desc="Input Usuario (Post-Logout)")
+        self.log.info("Redirección a Login confirmada exitosamente tras cierre de sesión.")
 
     # --- Acciones de Interacción ---
 
@@ -48,14 +52,25 @@ class LoginPage(BasePage):
         Ejecuta la secuencia de ingreso de credenciales y envío del formulario.
         """
         self.log.info(f"Ejecutando proceso de ingreso para el usuario: {usuario}")
-        self.fill(self._input_usuario, usuario, desc="Campo Usuario")
-        self.fill(self._input_password, password, desc="Campo Contraseña", mask=True)
-        self.click(self._btn_ingresar, desc="Botón Ingresar")
+        try:
+            self.fill(self._input_usuario, usuario, desc="Campo Usuario")
+            self.fill(self._input_password, password, desc="Campo Contraseña", mask=True)
+            self.click(self._btn_ingresar, desc="Botón Ingresar")
+
+            self.log.info(f"Formulario de login enviado para el usuario: {usuario}")
+
+        except Exception as e:
+            self.log.error(
+                f"Error crítico al intentar ingresar credenciales para {usuario}. "
+                f"Ver captura de pantalla."
+            )
+            raise e
 
     def click_en_salir(self) -> None:
         """Inicia el proceso de logout desde el menú de usuario."""
-        self.log.debug("Intentando clic en la opción 'Salir' del menú.")
+        self.log.info("Iniciando proceso de cierre de sesión...")
         self.click(self._opcion_salir, desc="Vínculo Salir")
+        self.log.debug(f"Clic realizado en locator: {self._opcion_salir}")
 
     def confirmar_cierre_sesion(self) -> None:
         """
@@ -63,5 +78,10 @@ class LoginPage(BasePage):
         Espera el mensaje de éxito y confirma el cierre definitivo.
         """
         self.log.debug("Esperando pantalla de confirmación post-logout.")
-        self.wait_visible(self._msg_logout_exito, desc="Mensaje 'Sesión cerrada con éxito'")
+        try:
+            self.wait_visible(self._msg_logout_exito, desc="Mensaje 'Sesión cerrada con éxito'")
+        except Exception:
+            self.log.warning("El mensaje de éxito de logout tardó más de lo esperado en aparecer.")
+            raise
         self.click(self._btn_aceptar_logout, desc="Botón Aceptar (Confirmación Logout)")
+        self.log.info("Sesión cerrada exitosamente en el flujo de confirmación.")
