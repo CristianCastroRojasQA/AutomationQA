@@ -1,9 +1,9 @@
 import pytest
 
 # Importaciones de dependencias del proyecto
-from flows.configuracion.adquirente.tecnologia_flow import TecnologiaFlow
+from flows.configuracion.adquirente.tecnologias_flow import TecnologiasFlow
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
-from repository.configuracion.adquirente.tecnologias_repository import TecnologiaRepository
+from repository.configuracion.adquirente.tecnologias_repository import TecnologiasRepository
 from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
 
@@ -18,16 +18,16 @@ class TestTecnologiaTerminales:
     # ------------------------------------------------------------------
     @staticmethod
     def _login_y_navegar(auth, page, nombre_caso_prueba, logger_test):
-        logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
+        logger_test.info("--- INICIO PRE-CONDICIÓN: Acceso al módulo de Tecnología ---")
         realizar_login_obligatorio(auth, nombre_caso_prueba, logger_test)
 
-        logger_test.info("Paso 2: Navegación a 'Tecnologías de Terminales'.")
+        logger_test.debug("Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
         menu_adquirente = AdquirenteMenuPage(page)
         menu_adquirente.navegar_a_adquirente_marcas_y_modelos_terminales(
             nombre_caso_prueba=nombre_caso_prueba
         )
 
-        return TecnologiaFlow(page)
+        return TecnologiasFlow(page)
 
     @staticmethod
     def _finalizar_test(auth, logger, nombre_caso):
@@ -46,6 +46,7 @@ class TestTecnologiaTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             tecnologia = flow.generar_nombre_unico("TEC_ALTA")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
             flow.flujo_alta_registro(valor=tecnologia, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -69,6 +70,7 @@ class TestTecnologiaTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             nombre_duplicado = "TECNOLOGIA_DUPLICADA_TEST"
+            logger_test.debug(f"Dato de prueba generado: {nombre_duplicado}")
             flow.flujo_validar_duplicado_exacto(valor=nombre_duplicado, logger=logger_test,
                                                 nombre_caso=nombre_caso_prueba)
         finally:
@@ -81,8 +83,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca_base = flow.generar_nombre_unico("TECNOLOGIA_LOGICA")
-            flow.flujo_validar_duplicado_logico(valor=marca_base, logger=logger_test,
+            tecnologia = flow.generar_nombre_unico("TECNOLOGIA_LOGICA")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
+            flow.flujo_validar_duplicado_logico(valor=tecnologia, logger=logger_test,
                                                 nombre_caso=nombre_caso_prueba)
 
         finally:
@@ -95,8 +98,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("TECNOLOGIA-BORRAR-TEST")
-            flow.flujo_eliminar_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
+            tecnologia = flow.generar_nombre_unico("TECNOLOGIA-BORRAR-TEST")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
+            flow.flujo_eliminar_registro(valor=tecnologia, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
 
@@ -161,8 +165,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("TECNOLOGIA-RELOAD")
-            flow.flujo_validar_persistencia_reload(valor=marca, logger=logger_test,
+            tecnologia = flow.generar_nombre_unico("TECNOLOGIA-RELOAD")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
+            flow.flujo_validar_persistencia_reload(valor=tecnologia, logger=logger_test,
                                                    nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -174,8 +179,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("TEC-MSJ_OK")
-            flow.flujo_validar_texto_mensaje_success(nombre=marca, logger=logger_test,
+            tecnologia = flow.generar_nombre_unico("TEC-MSJ_OK")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
+            flow.flujo_validar_texto_mensaje_success(nombre=tecnologia, logger=logger_test,
                                                      nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -188,8 +194,9 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            marca = flow.generar_nombre_unico("TECNO-MSJ_DUPLICADO")
-            flow.flujo_validar_texto_mensaje_warning(nombre=marca, logger=logger_test,
+            tecnologia = flow.generar_nombre_unico("TECNO-MSJ_DUPLICADO")
+            logger_test.debug(f"Dato de prueba generado: {tecnologia}")
+            flow.flujo_validar_texto_mensaje_warning(nombre=tecnologia, logger=logger_test,
                                                      nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -202,7 +209,8 @@ class TestTecnologiaTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
-            repo_tecnologia = TecnologiaRepository(
+            logger_test.debug("Instanciando TecnologiasRepository para consulta de integridad referencial.")
+            repo_tecnologia = TecnologiasRepository(
                 db_manager=db_instance,
                 nombre_caso_prueba=nombre_caso_prueba
             )

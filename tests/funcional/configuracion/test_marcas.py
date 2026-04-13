@@ -18,10 +18,10 @@ class TestMarcasTerminales:
     # ------------------------------------------------------------------
     @staticmethod
     def _login_y_navegar(auth, page, nombre_caso_prueba, logger_test):
-        logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
+        logger_test.info("--- INICIO PRE-CONDICIÓN: Acceso al módulo de Marcas ---")
         realizar_login_obligatorio(auth, nombre_caso_prueba, logger_test)
 
-        logger_test.info("Paso 2: Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
+        logger_test.debug("Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
         menu_adquirente = AdquirenteMenuPage(page)
         menu_adquirente.navegar_a_adquirente_marcas_y_modelos_terminales(nombre_caso_prueba=nombre_caso_prueba)
 
@@ -45,6 +45,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("Marca_Alta")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_alta_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -70,6 +71,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             nombre_duplicado = "MARCA_DUPLICADA_TEST"
+            logger_test.debug(f"Dato de prueba generado: {nombre_duplicado}")
             flow.flujo_validar_duplicado_exacto(valor=nombre_duplicado, logger=logger_test,
                                                 nombre_caso=nombre_caso_prueba)
         finally:
@@ -84,6 +86,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca_base = flow.generar_nombre_unico("MARCA_LOGICA")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_validar_duplicado_logico(valor=marca_base, logger=logger_test,
                                                 nombre_caso=nombre_caso_prueba)
 
@@ -99,6 +102,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("MARCAS-BORRAR-TEST")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_eliminar_registro(valor=marca, logger=logger_test, nombre_caso=nombre_caso_prueba)
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
@@ -170,6 +174,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("MARCAS-RELOAD")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_validar_persistencia_reload(valor=marca, logger=logger_test,
                                                    nombre_caso=nombre_caso_prueba)
         finally:
@@ -184,6 +189,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("MARCAS-MSJ_OK")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_validar_texto_mensaje_success(nombre=marca, logger=logger_test,
                                                      nombre_caso=nombre_caso_prueba)
         finally:
@@ -198,6 +204,7 @@ class TestMarcasTerminales:
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
             marca = flow.generar_nombre_unico("MARCAS-MSJ_DUPLICADO")
+            logger_test.debug(f"Dato de prueba generado: {marca}")
             flow.flujo_validar_texto_mensaje_warning(nombre=marca, logger=logger_test,
                                                      nombre_caso=nombre_caso_prueba)
         finally:
@@ -211,6 +218,7 @@ class TestMarcasTerminales:
 
         try:
             flow = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            logger_test.debug("Instanciando MarcasRepository para consulta de integridad referencial.")
             repo_marcas = MarcasRepository(
                 db_manager=db_instance,
                 nombre_caso_prueba=nombre_caso_prueba
