@@ -13,10 +13,10 @@ class TestMarcasE2E:
     # ------------------------------------------------------------------
     @staticmethod
     def _login_y_navegar(auth, page, nombre_caso_prueba, logger_test):
-        logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
+        logger_test.info("--- INICIO PRE-CONDICIÓN: Preparando entorno para prueba E2E ---")
         realizar_login_obligatorio(auth, nombre_caso_prueba, logger_test)
 
-        logger_test.info("Paso 2: Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
+        logger_test.debug("Navegación a 'Marcas y Modelos de Terminales' (ABCUC022).")
         menu_adquirente = AdquirenteMenuPage(page)
         menu_adquirente.navegar_a_adquirente_marcas_y_modelos_terminales(
             nombre_caso_prueba=nombre_caso_prueba
@@ -42,12 +42,14 @@ class TestMarcasE2E:
 
         try:
             flujo = self._login_y_navegar(auth, page, nombre_caso_prueba, logger_test)
+            logger_test.debug("Conexión técnica al repositorio de Marcas establecida para validaciones backend.")
             repo_marcas = MarcasRepository(
                 db_manager=db_instance,
                 nombre_caso_prueba=nombre_caso_prueba
             )
             marca = flujo.generar_nombre_unico("E2E_MARCA")
-
+            logger_test.debug(f"Dato de prueba generado para E2E: {marca}")
+            logger_test.info("PASO: Iniciando ciclo de vida (Alta -> Verificación DB -> Baja -> Verificación DB).")
             flujo.flujo_ciclo_completo_con_db(
                 valor=marca,
                 logger=logger_test,
@@ -55,5 +57,6 @@ class TestMarcasE2E:
                 repo_db=repo_marcas,
                 query_sql=repo_marcas.SELECT_MARCA_BY_NOMBRE
             )
+            logger_test.info("RESULTADO E2E: Integridad de datos validada exitosamente en UI y Base de Datos.")
         finally:
             self._finalizar_test(auth, logger_test, nombre_caso_prueba)
