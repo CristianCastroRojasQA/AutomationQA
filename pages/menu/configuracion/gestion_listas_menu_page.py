@@ -27,10 +27,12 @@ class GestionListasMenuPage(MenuConfiguracionPage):
         self.link_eliminar_lista = page.get_by_role("link", name="Eliminar lista para reglas de autorizacion")
         self.log.debug(f"Locator 'link_gestion_eliminar_lista_reglas_autorizacion' inicializado.")
 
+        self.log.debug(
+            f"Estructura Gestión de Listas (AuthorizationRuleListAdministration) mapeada. {len(self.__dict__)} enlaces detectados.")
         self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
 
     def _obtener_pasos_para_gestion_listas_autorizacion(self):
-        self.log.debug("Obteniendo pasos para navegar al sub-menú 'Gestión de Listas de Autorización'.")
+        self.log.debug("Encadenando: Abrir Configuración > Gestión de Listas de Autorización.")
         return [
             self._obtener_paso_abrir_menu_configuracion(),
             lambda: self.hover(self.sub_menu_gestion_listas,
@@ -45,6 +47,8 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_alta_lista,
                                desc="Link Alta Lista para Reglas de Autorización"),
         ]
+        self.log.info(
+            f"Destino: AddAuthorizationRuleList  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AddAuthorizationRuleList",
@@ -61,6 +65,8 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_mantenimiento_lista,
                                desc="Link Mantenimiento de Lista para Reglas de Autorización"),
         ]
+        self.log.info(
+            f"Destino: UpdateAuthorizationRuleListSearch  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="UpdateAuthorizationRuleListSearch",
@@ -78,6 +84,8 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_mantenimiento_valores,
                                desc="Link Mantenimiento de Valores de Lista para Reglas de Autorización")
         ]
+        self.log.info(
+            f"Destino: UpdateAuthorizationRuleListValuesSearch  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="UpdateAuthorizationRuleListValuesSearch",
@@ -95,6 +103,8 @@ class GestionListasMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_eliminar_lista,
                                desc="Link Eliminar Lista para Reglas de Autorización")
         ]
+        self.log.info(
+            f"Destino: DeleteAuthorizationRuleList  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="DeleteAuthorizationRuleList",
