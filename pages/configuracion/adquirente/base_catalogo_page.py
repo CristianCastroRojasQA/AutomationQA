@@ -33,6 +33,7 @@ class BaseCatalogoPage(BasePage, ABC):
     def __init__(self, page: Page, logger_name: str):
         super().__init__(page, logger_name=logger_name)
         self.page = page
+        self.log.debug(f"Selectores inicializados para la sección: {self.SECTION_TITLE}")
 
         # --------------------------------------------------------
         # Contenedor principal de la sección
@@ -148,6 +149,10 @@ class BaseCatalogoPage(BasePage, ABC):
         """Garantiza que el grid Wijmo esté estable y renderizado."""
         self.log.info("[WAIT] Grid renderizado")
         expect(self.grid_root).to_be_visible(timeout=timeout_ms)
+        self.log.debug(
+            f"Estado del grid: Visibilidad={self.grid_root.is_visible()}, "
+            f"Count={self.grid_cells.count()}"
+        )
         self.page.wait_for_load_state("networkidle")
 
     @staticmethod
@@ -186,6 +191,9 @@ class BaseCatalogoPage(BasePage, ABC):
 
         celda = self.grid_cells.filter(has_text=texto).first
         if not celda.is_visible():
+            self.log.error(
+                f"FAILED SELECTION: El registro '{texto}' no es visible o no existe en el DOM actual."
+            )
             raise AssertionError(
                 f"BUG: No se encontró el registro '{texto}' para seleccionar en la grilla"
             )
@@ -228,6 +236,10 @@ class BaseCatalogoPage(BasePage, ABC):
         if not self.es_boton_habilitado(self.btn_paginador_siguiente):
             return False
         self.log.info("[PAGINADOR] Avanzar página")
+        self.log.debug(
+            f"Paginación: Avanzando... Botón siguiente habilitado: "
+            f"{not self.btn_paginador_siguiente.is_disabled()}"
+        )
         self.btn_paginador_siguiente.click()
         self.esperar_grid_renderizado()
         return True
@@ -245,8 +257,7 @@ class BaseCatalogoPage(BasePage, ABC):
     # ============================================================
 
     def es_boton_eliminar_habilitado(self) -> bool:
-        cls = self.btn_eliminar.get_attribute("class") or ""
-        return "disabled" not in cls
+        return not self.btn_eliminar.is_disabled()
 
     def obtener_texto_alerta_exito(self) -> str:
         """
@@ -262,6 +273,7 @@ class BaseCatalogoPage(BasePage, ABC):
             .replace("Notificación!", "")
             .strip()
         )
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
         return texto_limpio
 
     def obtener_texto_alerta_warning(self) -> str:
@@ -271,13 +283,15 @@ class BaseCatalogoPage(BasePage, ABC):
         """
         self.log.info("[QUERY] Obtener texto funcional del mensaje de advertencia")
         # Extrae solo el texto visible que corresponde al mensaje de negocio
-        texto = self.WARNING_DUPLICADO_TEXT
+        texto = self.alert_warning_duplicado.inner_text()
         texto_limpio = (
             texto
             .replace("×", "")
             .replace("Notificación!", "")
             .strip()
         )
+
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
         return texto_limpio
 
     def obtener_texto_alerta_error_relacion(self) -> str:
@@ -295,11 +309,12 @@ class BaseCatalogoPage(BasePage, ABC):
             .replace("Han ocurrido errores!", "")
             .strip()
         )
-
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
         return texto_limpio
 
     def es_input_invalido(self) -> bool:
         cls = self.input_principal.get_attribute("class") or ""
+        self.log.debug(f"Validación de clases CSS en input: '{cls}'")
         return "ng-invalid" in cls
 
     def obtener_valor_input(self) -> str:
@@ -352,18 +367,14 @@ class BaseCatalogoPage(BasePage, ABC):
         """
         Busca un registro recorriendo toda la grilla, de forma determinística.
         """
-        self.log.info(f"[SEARCH] Buscar '{texto}' en grilla")
-
+        self.log.info(f"[SEARCH] Iniciando escaneo de grilla para el valor: '{texto}'")
         if not self.esta_en_primera_pagina():
             self.ir_a_primera_pagina()
-
         while True:
             self.esperar_grid_renderizado()
-
             if self.grid_cells.filter(has_text=texto).count() > 0:
                 self.log.info("[SEARCH] Registro encontrado")
                 return True
-
             if not self.avanzar_pagina():
                 self.log.warning("[SEARCH] Fin de paginación. No encontrado")
                 return False
