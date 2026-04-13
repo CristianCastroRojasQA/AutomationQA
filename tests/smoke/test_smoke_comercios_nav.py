@@ -34,11 +34,13 @@ def test_smoke_navegacion_menu_comercios(auth, page):
         ("Comercios > Consulta de Transacciones",
          pagina_comercios.navegar_a_consulta_transacciones)
     ]
+    logger.debug(f"Configuradas {len(rutas_de_navegacion)} rutas para verificación de disponibilidad.")
 
     # Orquestación
     engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
+        logger.info("PASO: Orquestando navegación para el menú comercios...")
         engine.ejecutar_flujo(rutas_de_navegacion)
     finally:
-        # Post-condición
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
         finalizar_sesion_segura(auth, logger, nombre_caso_prueba)

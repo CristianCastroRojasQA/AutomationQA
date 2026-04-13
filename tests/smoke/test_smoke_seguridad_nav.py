@@ -5,7 +5,7 @@ from pages.menu.seguridad.mantenimiento_funcionalidad_menu_page import Mantenimi
 from pages.menu.seguridad.perfiles_menu_page import PerfilesMenuPage
 from pages.menu.seguridad.politicas_seguridad_menu_page import PoliticasSeguridadPage
 from pages.menu.seguridad.reportes_menu_page import ReportesMenuPage
-from pages.menu.seguridad.usuario_menu_page import UsuariosMenuPage
+from pages.menu.seguridad.usuarios_menu_page import UsuariosMenuPage
 from pages.menu.seguridad.validacion_controles_menu_page import ValidacionControlesMenuPage
 from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
@@ -74,8 +74,13 @@ def test_smoke_navegacion_menu_seguridad(auth, page):
          pagina_log_menu.navegar_a_log_audtoria)
     ]
 
+    logger.debug(f"Configuradas {len(rutas_de_navegacion)} rutas para verificación de disponibilidad.")
+
+    # Orquestación
     engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
+        logger.info("PASO: Orquestando navegación para el menú seguridad...")
         engine.ejecutar_flujo(rutas_de_navegacion)
     finally:
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
         finalizar_sesion_segura(auth, logger, nombre_caso_prueba)

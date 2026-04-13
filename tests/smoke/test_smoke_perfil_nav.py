@@ -10,7 +10,7 @@ from utils.test_orchestrator import TestOrchestrator
 @pytest.mark.perfil
 def test_smoke_opciones_perfil(auth, page):
     nombre_caso_prueba = "Smoke_Opciones_Perfil"
-    logger= get_logger(nombre_caso_prueba)
+    logger = get_logger(nombre_caso_prueba)
     perfil = PerfilPage(page)
 
     realizar_login_obligatorio(auth, nombre_caso_prueba, logger)
@@ -21,8 +21,13 @@ def test_smoke_opciones_perfil(auth, page):
         ("Perfil > Acerca de", perfil.validar_version_ambiente)
     ]
 
+    logger.debug(f"Configuradas {len(rutas_perfil)} rutas para verificación de disponibilidad.")
+
+    # Orquestación
     engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
+        logger.info("PASO: Orquestando navegación para las opciones del perfil...")
         engine.ejecutar_flujo(rutas_perfil)
     finally:
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
         finalizar_sesion_segura(auth, logger, nombre_caso_prueba)

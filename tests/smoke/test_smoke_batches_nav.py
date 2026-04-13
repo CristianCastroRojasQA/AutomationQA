@@ -40,9 +40,12 @@ def test_smoke_navegacion_menu_batches(auth, page):
         ("Batches > Transacción Adquirente",
          pagina_batches.navegar_a_grupo_transaccion_adquirente),
     ]
+    logger.debug(f"Configuradas {len(rutas_de_navegacion)} rutas para verificación de disponibilidad.")
 
     engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
+        logger.info("PASO: Orquestando navegación por grupos de Batches...")
         engine.ejecutar_flujo(rutas_de_navegacion)
     finally:
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
         finalizar_sesion_segura(auth, logger, nombre_caso_prueba)
