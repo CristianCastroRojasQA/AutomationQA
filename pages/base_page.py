@@ -36,6 +36,11 @@ class BasePage:
         self.user_welcome = page.locator("span[id$='UserWelcome']")
         self.user_dropdown = self.user_welcome.locator("xpath=ancestor::a[1]")
 
+        self.log.debug(
+            f"BasePage instanciada para {logger_name}. "
+            f"Timeouts: URL={self._url_timeout}s, UI={self._title_timeout}s"
+        )
+
     # --- Métodos de Estado y Validación ---
 
     def wait_visible(self, locator: Locator, desc: str = "elemento") -> Locator:
@@ -59,15 +64,21 @@ class BasePage:
     # --- Acciones Atómicas (Interacciones) ---
 
     def click(self, locator: Locator, desc: str = "elemento"):
-        """Realiza un clic tras validar visibilidad."""
-        self.log.debug(f"[CLICK] {desc}")
+        self.log.info(f"[CLICK] {desc}")
         self.wait_visible(locator, desc)
-        locator.click()
+        try:
+            locator.click()
+        except Exception as e:
+            self.log.error(
+                f"CLICK FAILED: No se pudo hacer click en '{desc}'. "
+                f"Posible elemento superpuesto o no interactuable."
+            )
+            raise e
 
     def fill(self, locator: Locator, text: str, desc: str = "campo", mask: bool = False):
         """Limpia e ingresa texto. Si mask=True, oculta el valor en logs."""
         log_value = "***" if mask else text
-        self.log.debug(f"[FILL] {desc} = '{log_value}'")
+        self.log.info(f"[FILL] {desc} = '{log_value}'")
         self.wait_visible(locator, desc)
         locator.fill(text)
 
@@ -164,13 +175,32 @@ class BasePage:
                 timeout=self._url_timeout,
                 wait_until="networkidle"
             )
+        self.log.warning(
+            f"Sincronizando navegación estándar hacia '{segmento_url_esperado}'. "
+            "Si el título no aparece, verificar latencia del UpdatePanel."
+        )
+        self.log.debug(f"Sincronizando título esperado: {locator_titulo_pagina}")
 
-        # Sincronización final y evidencia
-        locator_titulo_pagina.wait_for(state="visible", timeout=self._title_timeout)
-        self.page.wait_for_timeout(self._animation_wait)
+        try:
+            locator_titulo_pagina.wait_for(state="visible", timeout=self._title_timeout)
+        except Exception as e:
+            self.log.error(
+                f"PERMISSION / ACCESS ERROR: "
+                f"No se pudo acceder a '{segmento_url_esperado}'. "
+                f"Posible problema de permisos o roles. "
+                f"URL actual: {self.page.url}"
+            )
 
+            capturar_evidencia(self.page, nombre_caso_prueba, f"ERROR_PERMISOS_{etiqueta_evidencia}"
+                               )
+
+            raise e
+
+        self.page.wait_for_timeout(settings.ANIMATION_WAIT)
         capturar_evidencia(self.page, nombre_caso_prueba, f"Pantalla_{etiqueta_evidencia}")
-        self.log.info(f"Navegación exitosa a {segmento_url_esperado or 'página destino'}")
+        self.log.info(
+            f"Navegación exitosa a {segmento_url_esperado or 'página destino'}"
+        )
 
         return self.page.url
 
@@ -184,7 +214,9 @@ class BasePage:
         error_page = ErrorHandlerPage(self.page)
 
         if error_page.hay_error():
-            self.log.error(f"Error detectado en pantalla durante ruta: {nombre_ruta}")
+            self.log.critical(
+                f"¡APP ERROR DETECTADO! Pantalla de error activa durante ruta: {nombre_ruta}"
+            )
 
             # Gestión de directorios de evidencia
             fecha_hoy = datetime.now().strftime("%Y-%m-%d")
@@ -203,4 +235,7 @@ class BasePage:
             # Intento de recuperación
             error_page.aceptar_y_recuperar()
 
-            raise AssertionError(f"Fallo en aplicación detectado en: {nombre_ruta}. Detalles en {txt_path.name}")
+            raise AssertionError(
+                f"Fallo de aplicación detectado en ruta '{nombre_ruta}'. "
+                f"Detalle técnico guardado en {txt_path.name}"
+            )
