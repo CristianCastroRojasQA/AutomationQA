@@ -2,7 +2,6 @@ import logging
 import sys
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
-from config.settings import settings
 
 
 class ColorFormatter(logging.Formatter):
@@ -56,18 +55,20 @@ def get_logger(name="QA"):
     2. Handler Consola: Salida con colores vía sys.stdout.
     3. Handler Archivo: Persistencia rotativa en la ruta definida por settings.LOGS_DIR.
     """
+    from config.settings import Settings
+
     logger = logging.getLogger(name)
 
     # Solo configuramos el logger si no tiene handlers previos (evita logs duplicados)
     if not logger.handlers:
         # 1. Definición del nivel de severidad (DEBUG, INFO, etc.)
-        logger.setLevel(getattr(logging, settings.LOG_LEVEL))
+        logger.setLevel(getattr(logging, Settings.LOG_LEVEL))
         logger.propagate = False  # No propaga a logs raíz para mantener limpieza en consola
 
         # 2. Definición del nombre y ruta del archivo de log
         # settings.LOGS_DIR garantiza que se use la carpeta configurada en el .env
         today = datetime.now().strftime("%Y-%m-%d")
-        log_file = settings.LOGS_DIR / f"ejecucion_{today}.log"
+        log_file = Settings.LOGS_DIR / f"ejecucion_{today}.log"
 
         # 3. HANDLER PARA CONSOLA: Prioriza la visibilidad con ColorFormatter
         console_handler = logging.StreamHandler(sys.stdout)
