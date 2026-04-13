@@ -43,14 +43,23 @@ class MenuOperacionesPage(BasePage):
         self.sub_menu_cuadratura = page.get_by_role("link", name="Cuadratura")
         self.log.debug("Locator 'sub_menu_cuadratura' inicializado.")
 
+        self.log.debug(f"Mapeando sub-menús de Operaciones. Total locators: {len(self.__dict__)}")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def abrir_menu_operaciones(self):
+        """Hace click en el menú principal de Operaciones."""
+        self.log.info("[NAV] Desplegando menú principal de: Operaciones (#OPERATIONS_KEY)")
+        self.log.debug("Esperando que el menú de operaciones sea interactuable (Clickable).")
         self.click(self.link_menu_principal_operaciones, desc="Menú Configuración Principal")
 
+
     def _obtener_paso_abrir_menu_operaciones(self) -> Callable[[], None]:
+        """Retorna un callable para el paso de abrir el menú de operaciones."""
+        self.log.debug("Encadenando: Abrir Operaciones.")
         return lambda: self.abrir_menu_operaciones()
 
     # ------------------------------------------------------------------
@@ -60,12 +69,11 @@ class MenuOperacionesPage(BasePage):
     def navegar_a_consultar_debitos_automaticos(self, nombre_caso_prueba: str) -> str:
         """Navega a la página 'Consultar Débitos Automáticos'."""
         self.log.info(f"Iniciando navegación a 'Consultar Débitos Automáticos' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_consultar_debitos_automaticos, desc="Consultar Débitos Automáticos"),
         ]
-
+        self.log.info(f"Destino: ACMUC033  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ACMUC033",
@@ -78,13 +86,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Mantenimiento Fee Collection Adquirente'."""
         self.log.info(
             f"Iniciando navegación a 'Mantenimiento Fee Collection Adquirente' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_mantenimiento_fee_collection,
                                desc="Mantenimiento Fee Collection Adquirente"),
         ]
-
+        self.log.info(f"Destino: ATXUC029  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ATXUC029",
@@ -97,13 +104,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Mantenimiento Pagos'."""
         self.log.info(
             f"Iniciando navegación a 'Mantenimiento Pagos' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_mantenimiento_pagos,
                                desc="Mantenimiento Pagos"),
         ]
-
+        self.log.info(f"Destino: ACMUC013  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ACMUC013",
@@ -116,13 +122,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Devolución Manual'."""
         self.log.info(
             f"Iniciando navegación a 'Devolución Manual' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_devolucion_manual,
                                desc="Devolución Manual"),
         ]
-
+        self.log.info(f"Destino: ATXUC014  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ATXUC014",
@@ -135,13 +140,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Administración Disputas Adquirente'."""
         self.log.info(
             f"Iniciando navegación a 'Administración Disputas Adquirente' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_administracion_disputas_adquirente,
                                desc="Administración Disputas Adquirente"),
         ]
-
+        self.log.info(f"Destino: GetControversy  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="GetControversy",
@@ -154,13 +158,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Devolución Débitos Automáticos'."""
         self.log.info(
             f"Iniciando navegación a 'Devolución Débitos Automáticos' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_devolucion_debitos_automaticos,
                                desc="Devolución Débitos Automáticos"),
         ]
-
+        self.log.info(f"Destino: ACMUC036 Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ACMUC036",
@@ -173,13 +176,12 @@ class MenuOperacionesPage(BasePage):
         """Navega a la página 'Cuadratura'."""
         self.log.info(
             f"Iniciando navegación a 'Cuadratura' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_operaciones(),
             lambda: self.click(self.sub_menu_cuadratura,
                                desc="Cuadratura"),
         ]
-
+        self.log.info(f"Destino: DailyQuadrature Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="DailyQuadrature",
