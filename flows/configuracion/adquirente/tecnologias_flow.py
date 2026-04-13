@@ -1,5 +1,5 @@
 from flows.configuracion.adquirente.base_catalogo_flow import BaseCatalogoFlow
-from pages.configuracion.adquirente.tecnologia_page import TecnologiaPage
+from pages.configuracion.adquirente.tecnologias_page import TecnologiasPage
 from utils.logger import get_logger
 
 
@@ -15,6 +15,6 @@ class TecnologiasFlow(BaseCatalogoFlow):
 
         logger.info("=== COMPONENTE: CATÁLOGO DE TECNOLOGÍAS (ABCUC022) ===")
 
-        super().__init__(page, TecnologiaPage(page))
+        super().__init__(page, TecnologiasPage(page))
 
         logger.debug("TecnologiasPage vinculada exitosamente con el driver de Playwright.")
