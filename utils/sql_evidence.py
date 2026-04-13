@@ -19,11 +19,15 @@ def capturar_evidencia_sql(nombre_caso: str, nombre_paso: str, query: str, param
         resultado (any, opcional): El retorno de la base de datos (dict, list o None).
     """
     try:
+        log.debug(f"Preparando volcado de traza SQL para el paso: {nombre_paso}...")
+
         # 1. GESTIÓN DE DIRECTORIOS DINÁMICA
         # Se utiliza settings.EVIDENCIAS_DIR definido en el .env para evitar rutas relativas rotas.
         fecha_actual = datetime.now().strftime("%Y-%m-%d")
         folder = settings.EVIDENCIAS_DIR / fecha_actual / nombre_caso
         folder.mkdir(parents=True, exist_ok=True)
+
+        log.debug(f"Estructura de carpetas verificada en: {folder}")
 
         # 2. CONSTRUCCIÓN DEL NOMBRE DEL ARCHIVO
         # Incluimos timestamp para evitar colisiones si se ejecuta la misma query varias veces.
@@ -68,8 +72,12 @@ def capturar_evidencia_sql(nombre_caso: str, nombre_paso: str, query: str, param
         path.write_text("\n".join(contenido), encoding="utf-8")
 
         # Log en nivel INFO para confirmar la creación del artefacto
-        log.info(f"Evidencia SQL generada exitosamente: {path.name}")
+        log.info(f"SQL_TRACE: Evidencia técnica guardada en {path.name}")
+
 
     except Exception as e:
         # Captura cualquier error de permisos o escritura para no detener el flujo del test
-        log.error(f"Fallo crítico al intentar guardar evidencia SQL: {e}")
+        log.error(
+            f"ERROR DE SISTEMA: No se pudo escribir el log de SQL en disco. "
+            f"Error: {e}"
+        )
