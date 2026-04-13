@@ -1,4 +1,3 @@
-import os
 from utils.database_manager import db_manager
 from config.settings import settings
 from utils.logger import get_logger
@@ -12,8 +11,7 @@ def test_manual_db_connection():
     Script de diagnostico para verificar la conexion a la base de datos
     y la carga correcta de las configuraciones de entorno.
     """
-    logger.info("-" * 60)
-    logger.info("INICIANDO DIAGNOSTICO DE CONEXION A BASE DE DATOS")
+    logger.info("INICIO: Diagnóstico manual de conectividad (Pre-vuelo)")
     logger.info("-" * 60)
 
     # 1. Diagnostico de Configuracion
@@ -27,23 +25,34 @@ def test_manual_db_connection():
     }
 
     for clave, valor in config_diagnostico.items():
+        logger.debug(f"Leyendo propiedad de settings: {clave} = {valor}")
         if not valor:
-            logger.warning(f"ADVERTENCIA - {clave}: No definido en la configuracion")
+            logger.critical(
+                f"CONFIG_MISSING: La variable '{clave}' es nula. "
+                "El test fallará inevitablemente.")
+
+            return
         else:
-            logger.info(f"Configuracion - {clave}: {valor}")
+            logger.info(f"Configuración OK - {clave}: {valor}")
 
     logger.info("-" * 60)
 
     # 2. Ejecucion de la Validacion
-    # El DatabaseManager ya gestiona internamente el cierre de la conexion
+    logger.info("Invocando Health Check dinámico del DatabaseManager...")
     resultado = db_manager.validar_conexion()
 
     # 3. Resultado Final
     if resultado:
-        logger.info("RESULTADO: Conexion exitosa. El ambiente es alcanzable.")
+        logger.info(
+            "FIN: Infraestructura de Datos VALIDADA. "
+            "Listo para ejecutar pruebas."
+        )
+
     else:
-        logger.error("RESULTADO: Error de conexion.")
-        logger.error("Verificar: 1. Estado de la VPN. 2. Firewall. 3. Credenciales en .env.")
+        logger.error(
+            "FALLO DE INFRAESTRUCTURA: Revise logs del DatabaseManager "
+            "para detalle técnico."
+        )
 
     logger.info("-" * 60)
 
