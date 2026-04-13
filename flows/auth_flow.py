@@ -26,6 +26,7 @@ class AuthFlow:
         Args:
             caso: Nombre del test para el prefijo de evidencias.
         """
+        self.log.debug(f"Extrayendo credenciales para el prefijo: {settings.PREFIX}")
         return self.login(settings.USUARIO, settings.PASSWORD, nombre_caso=caso)
 
     def login(self, usuario: str, password: str, nombre_caso: Optional[str] = None) -> str:
@@ -33,18 +34,22 @@ class AuthFlow:
         Ejecuta el flujo completo de autenticación con validaciones de seguridad.
         """
         self.log.info(f"--- INICIO LOGIN: [{settings.PROYECTO} | {settings.AMBIENTE}] ---")
+        self.log.debug(f"Navegando a la URL base: {settings.URL}")
 
         try:
             # 1. Preparación y Validación de estado inicial
+            self.log.info("Paso 1: Validando disponibilidad del formulario de acceso.")
             self.login_page.validar_presencia_login()
             if nombre_caso:
                 capturar_evidencia(self.page, nombre_caso, "login_01_formulario")
 
             # 2. Interacción técnica
             self.log.debug(f"Intentando login técnico para el usuario: '{usuario}'")
+            self.log.debug("Interactuando con LoginPage: ingreso de credenciales en campos Usuario y Contraseña.")
             self.login_page.ejecutar_login_tecnico(usuario, password)
 
             # 3. Validación de post-condición (Acceso al Home)
+            self.log.warning("Esperando sincronización de post-login")
             user_text = self.login_page.obtener_nombre_usuario()
 
             if nombre_caso:
@@ -54,7 +59,10 @@ class AuthFlow:
             return user_text
 
         except Exception as e:
-            self.log.error(f"FALLO CRÍTICO en el proceso de Login: {str(e)}")
+            self.log.error(
+                f"LOGIN FALLIDO: No se pudo establecer sesión en {settings.URL}. "
+                f"Causa: {str(e)}"
+            )
             if nombre_caso:
                 capturar_evidencia(self.page, nombre_caso, "ERROR_LOGIN")
             raise e
@@ -73,6 +81,7 @@ class AuthFlow:
 
             # 2. Activación del disparador de salida
             self.log.debug("Haciendo clic en el botón de salida del menú")
+            self.log.debug("Intentando localizar el trigger de salida en el DOM.")
             self.login_page.click_en_salir()
 
             # 3. Gestión de modal de confirmación
@@ -84,6 +93,7 @@ class AuthFlow:
 
             # 4. Validación de fin de sesión (Retorno a Login)
             self.login_page.validar_retorno_a_login()
+            self.log.debug("Verificando limpieza de cookies y LocalStorage tras redirección.")
 
             if caso:
                 capturar_evidencia(self.page, caso, "logout_03_retorno_login_ok")
@@ -93,6 +103,6 @@ class AuthFlow:
         except Exception as e:
             # Un fallo en logout no necesariamente debe romper la suite si el test terminó, 
             # pero debe quedar registrado como advertencia técnica.
-            self.log.warning(f"Logout no completado de forma estándar: {str(e)}")
+            self.log.warning(f"Logout incompleto: Es posible que la sesión persista. Error: {str(e)}")
             if caso:
                 capturar_evidencia(self.page, caso, "ADVERTENCIA_LOGOUT")
