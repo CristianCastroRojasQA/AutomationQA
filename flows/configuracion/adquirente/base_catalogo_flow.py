@@ -1,7 +1,9 @@
 import time
 from abc import ABC
 
+from config.settings import settings
 from utils.bug_reporter import BugReporter
+from utils.logger import get_logger
 from utils.screenshots import capturar_evidencia
 from utils.sql_evidence import capturar_evidencia_sql
 
@@ -13,8 +15,14 @@ class BaseCatalogoFlow(ABC):
     """
 
     def __init__(self, page, ui):
+        self.log = get_logger(self.__class__.__name__)
         self.page = page
         self.ui = ui
+
+        self.log.debug(
+            f"Instanciando Flow: {self.__class__.__name__} "
+            f"con UI: {self.ui.__class__.__name__}"
+        )
 
     # -------------------------
     # Utilidades
@@ -22,7 +30,11 @@ class BaseCatalogoFlow(ABC):
     @staticmethod
     def generar_nombre_unico(prefijo="QA_Test") -> str:
         """Genera un nombre único con timestamp para evitar colisiones en DB."""
-        return f"{prefijo}_{int(time.time())}"
+        log = get_logger("DataFactory")
+        nombre_generado = f"{prefijo}_{int(time.time())}"
+        log.debug(f"Generando semilla de dato único: {prefijo} -> {nombre_generado}")
+
+        return nombre_generado
 
     # ============================================================
     # FLUJOS - PRIORIDAD ALTA (HIGH SEVERITY)
@@ -37,6 +49,7 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 1: Digitación
         logger.info("Paso 1: Digitación del valor en el input")
+        logger.debug(f"Escribiendo '{valor}' en selector: {self.ui.input_selector}")
         self.ui.escribir_valor(valor)
         capturar_evidencia(self.page, nombre_caso, "01_Digitacion_Valor")
 
@@ -64,6 +77,7 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 4: Confirmación backend
         logger.info("Paso 4: Esperando mensaje de éxito del sistema")
+        logger.warning(f"La alerta de éxito tardó más de {settings.ANIMATION_WAIT}ms en ser visible")
         self.ui.esperar_alerta_exito()
         capturar_evidencia(self.page, nombre_caso, "03_Mensaje_Exito")
 
@@ -98,6 +112,8 @@ class BaseCatalogoFlow(ABC):
         self.ui.click_incluir()
 
         # Validamos estado de la UI y de la grilla
+
+        logger.debug(f"Estado 'is_visible' de msg_error_campo: {self.ui.msg_error_campo.is_visible()}")
         error_ui = self.ui.es_input_invalido() or self.ui.msg_error_campo.is_visible()
         bloqueo_grilla = (self.ui.obtener_conteo_grid() == cant_inicial)
 
@@ -117,7 +133,7 @@ class BaseCatalogoFlow(ABC):
 
         permite_guardar = self.ui.es_alerta_exito_visible()
         capturar_evidencia(self.page, nombre_caso, "02_Resultado_Guardar_Vacio")
-
+        logger.critical("BUG DETECTADO: El backend aceptó un commit con campos obligatorios vacíos.")
         if permite_guardar:
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Guardado_Invalido_Permitido",
                                          "CRÍTICO: El sistema permitió guardar y mostró éxito con campos vacíos.")
@@ -143,6 +159,7 @@ class BaseCatalogoFlow(ABC):
         if not existe:
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Registro_Base_No_Visible",
                                          f"El registro base '{valor}' no aparece tras su creación.")
+        logger.info(f"Registro base '{valor}' verificado. Procediendo con intento de duplicidad.")
 
         conteo_inicial = self.ui.obtener_conteo_grid()
         logger.info(f"Conteo inicial de registros: {conteo_inicial}")
@@ -205,7 +222,7 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 4: Pruebas iterativas de variantes
         for idx, variante in enumerate(variantes, start=1):
-            logger.info(f"Paso 4.{idx}: Probando variante '{variante}'")
+            logger.info(f"Validando normalización - Variante {idx}: '{variante}'")
 
             self.ui.escribir_valor(variante)
             self.ui.click_incluir()
@@ -217,6 +234,7 @@ class BaseCatalogoFlow(ABC):
 
             # Paso 5: Verificación de integridad de la grilla por variante
             conteo_actual = self.ui.obtener_conteo_grid()
+            logger.debug(f"Snapshot de grilla - Conteo esperado: {conteo_inicial}, Conteo real: {conteo_actual}")
             logger.info(f"Conteo tras variante '{variante}': {conteo_actual}")
 
             if conteo_actual != conteo_inicial:
@@ -245,6 +263,8 @@ class BaseCatalogoFlow(ABC):
         # Paso 2: Selección y verificación de botón
         logger.info(f"Paso 2: Seleccionando '{valor}' y verificando botón de acción")
         self.ui.seleccionar_registro_en_grid(valor)
+        logger.debug(f"Atributo 'disabled' del botón eliminar: {self.ui.btn_eliminar.get_attribute('disabled')}")
+
         capturar_evidencia(self.page, nombre_caso, "01_Registro_Seleccionado")
 
         if not self.ui.es_boton_eliminar_habilitado():
@@ -270,6 +290,7 @@ class BaseCatalogoFlow(ABC):
                            "04_Confirmacion_Baja_OK" if not todavia_existe else "04_BAJA_FALLIDA")
 
         if todavia_existe:
+            logger.info(f"Confirmada ausencia de '{valor}' tras navegación por paginación.")
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Baja_No_Persistida",
                                          f"BUG: El registro '{valor}' sigue visible tras confirmar la eliminación.")
 
@@ -303,6 +324,7 @@ class BaseCatalogoFlow(ABC):
         logger.info("Paso 3: Intentando guardar con formulario inválido")
         self.ui.click_guardar()
         self.ui.esperar_alerta_exito()
+        logger.warning("El sistema muestra 'Éxito' falsamente. Verificando si hubo persistencia real...")
 
         capturar_evidencia(self.page, nombre_caso, "02_Guardar_Invalido_Con_Success")
 
@@ -339,6 +361,7 @@ class BaseCatalogoFlow(ABC):
         # Paso 1: Obtener estado inicial
         conteo_inicial = self.ui.obtener_conteo_grid()
         logger.info(f"Conteo inicial de la grilla: {conteo_inicial}")
+        logger.debug(f"Grid State: Filas detectadas por selector '{self.ui.grid_rows_selector}': {conteo_inicial}")
 
         # Paso 2: Incluir sin guardar
         logger.info("Paso 2: Incluyendo registro en la tabla local (sin presionar Guardar)")
@@ -346,6 +369,7 @@ class BaseCatalogoFlow(ABC):
         self.ui.click_incluir()
 
         # Paso 3: Validar que el registro APARECE visualmente
+        logger.info(f"Validando visibilidad de item temporal '{valor}' mediante paginación dinámica.")
         if not self.ui.buscar_en_paginacion(valor):
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Inclusion_Local_Fail",
                                          f"El registro '{valor}' no apareció visualmente tras presionar 'Incluir'.")
@@ -370,7 +394,9 @@ class BaseCatalogoFlow(ABC):
         self.ui.click_cancelar()
 
         # Sincronización mínima para que el cierre del test no choque con el refresco de la grilla
+        logger.warning("Esperando sincronización 'networkidle' tras cancelación. La UI podría tardar en refrescar.")
         self.page.wait_for_load_state("networkidle")
+        logger.debug("Red en reposo (Idle). Procediendo con el cierre del caso.")
         capturar_evidencia(self.page, nombre_caso, "02_Cancelacion_Ejecutada_OK")
 
         logger.info("=== FIN FLUJO: INCLUSIÓN VISUAL VALIDADA Y CANCELADA EXITOSAMENTE ===")
@@ -391,8 +417,11 @@ class BaseCatalogoFlow(ABC):
 
         # Validación de seguridad: el botón NO debe estar habilitado
         boton_habilitado = self.ui.es_boton_eliminar_habilitado()
+        logger.debug(
+            f"Estado técnico del botón Eliminar - IsEnabled: {boton_habilitado}. ")
 
         if boton_habilitado:
+            logger.error("Violación de seguridad UI: Botón Eliminar habilitado en estado inicial.")
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Boton_Eliminar_Habilitado_Error",
                                          "BUG: El botón 'Eliminar' está habilitado sin haber seleccionado ningún registro de la grilla.")
 
@@ -415,6 +444,11 @@ class BaseCatalogoFlow(ABC):
         # Paso 1: Obtener configuración del componente
         max_len = int(self.ui.INPUT_MAX_LENGTH)
         logger.info(f"Longitud máxima permitida en el input: {max_len}")
+
+        logger.debug(
+            f"Atributo 'maxlength' detectado en el DOM: "
+            f"{self.ui.input_principal.get_attribute('maxlength')}"
+        )
 
         texto_largo = "A" * (max_len + 5)
         logger.info(f"Intentando ingresar {len(texto_largo)} caracteres (excede el límite)")
@@ -458,6 +492,7 @@ class BaseCatalogoFlow(ABC):
         # Paso 2: Recargar la página (F5)
         logger.info("Paso 2: Ejecutando recarga de página (browser reload / F5)")
         self.ui.recargar_pagina()
+        logger.warning("Iniciando reload de página. Nota: Los estados de sesión no persistidos podrían perderse.")
         capturar_evidencia(self.page, nombre_caso, "01_Pagina_Recargada")
 
         # Paso 3: Verificar persistencia post‑reload
@@ -495,6 +530,7 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 2: Capturar el mensaje de éxito en la UI
         logger.info("Paso 2: Esperando y capturando el texto real de la alerta")
+        logger.debug(f"Esperando selector de alerta: {self.ui.esperar_alerta_exito}")
         self.ui.esperar_alerta_exito()
         texto_real = self.ui.obtener_texto_alerta_exito()
 
@@ -510,6 +546,10 @@ class BaseCatalogoFlow(ABC):
                            "02_Texto_Correcto_OK" if coincide else "02_TEXTO_ERRONEO_FALLA")
 
         if not coincide:
+            logger.error(
+                f"Fallo de Contrato: El mensaje de éxito es incorrecto. "
+                f"Diff: Real['{texto_real}'] vs Esperado['{mensaje_esperado}']"
+            )
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Texto_Success_Incorrecto",
                                          f"ERROR DE REQUERIMIENTO: El texto no coincide.\nEsperado: '{mensaje_esperado}'\nObtenido: '{texto_real}'")
 
@@ -545,6 +585,7 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 2: Esperar y capturar el warning
         logger.info("Paso 2: Esperando y capturando el texto real del warning")
+        logger.debug(f"Esperando selector de alerta: {self.ui.alert_warning_duplicado}")
         self.ui.esperar_alerta_duplicado()
         texto_real = self.ui.obtener_texto_alerta_warning()
 
@@ -578,7 +619,7 @@ class BaseCatalogoFlow(ABC):
         nombre_registro = registro_db["NOMBRE_REGISTRO"]
         id_registro = registro_db["ID_REGISTRO"]
         tipo = registro_db.get("TIPO", "REGISTRO")
-
+        logger.info(f"Iniciando prueba de Integridad Referencial con registro: {nombre_registro}")
         logger.info(f"{tipo} obtenida con relación: '{nombre_registro}' (ID={id_registro})")
 
         # Auditoría inicial en base de datos
@@ -604,8 +645,8 @@ class BaseCatalogoFlow(ABC):
         self.ui.esperar_alerta_error_relacion()
 
         texto_real = self.ui.obtener_texto_alerta_error_relacion()
+        logger.debug(f"Contenido del mensaje de error capturado: {texto_real}")
         logger.info(f"Texto de error capturado: '{texto_real}'")
-
         capturar_evidencia(self.page, nombre_caso, "02_Alert_Error_Relacion_Visible")
 
         # Paso 4: Validación estricta del mensaje de error
@@ -647,8 +688,9 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 2: Validación en DB (Alta)
         logger.info("Paso 2: Validando persistencia en Base de Datos (Post-Alta)")
+        logger.debug(f"Ejecutando Query de Verificación: {query_sql}  Params: ['{valor}']")
         registro_db = repo_db.obtener_registro(valor)
-
+        logger.debug(f"Resultado crudo de DB: {registro_db}")
         capturar_evidencia_sql(nombre_caso, "02_SQL_Alta", query_sql, [valor], registro_db)
 
         if not registro_db:
@@ -657,7 +699,10 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 3: Eliminación del registro vía UI
         logger.info("Paso 3: Localizando y eliminando el registro creado")
-
+        logger.debug(
+            f"Iniciando búsqueda en paginación para selección. "
+            f"Selector de fila: {self.ui.get_selector_fila(valor)}"
+        )
         if not self.ui.buscar_en_paginacion(valor):
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Registro_No_Visible_UI",
                                          f"El registro '{valor}' no está visible en la grilla para proceder con la baja.")
@@ -681,6 +726,9 @@ class BaseCatalogoFlow(ABC):
 
         # Paso 4: Validación en DB (Baja)
         logger.info("Paso 4: Validando eliminación real en la Base de Datos")
+        logger.warning(
+            f"Iniciando espera activa (Polling) para confirmación de baja en DB para '{valor}'..."
+        )
         eliminado = repo_db.esperar_no_existencia(valor)
 
         registro_final = repo_db.obtener_registro(valor)
@@ -689,8 +737,10 @@ class BaseCatalogoFlow(ABC):
                                params=[valor], resultado=registro_final)
 
         if not eliminado:
+            logger.critical(f"DATA INTEGRITY ERROR: Registro '{valor}' persistente en DB tras mensaje de éxito en UI.")
             BugReporter.certificar_falla(self.page, logger, nombre_caso, "Baja_No_Persistida_DB",
                                          f"El registro '{valor}' todavía existe en la base de datos tras la eliminación en UI.")
+            logger.info(f"Confirmada inexistencia de '{valor}' en tabla destino.")
 
         logger.info(f"=== FIN FLUJO E2E: CICLO COMPLETO EXITOSO [{valor}] ===")
         return True
