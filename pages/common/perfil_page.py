@@ -39,12 +39,17 @@ class PerfilPage(BasePage):
         self.abrir_menu_perfil()
 
         # Extracción de dato para auditoría
+        self.log.debug(f"Selector fecha detectado: {self._lbl_fecha_valor}. Esperando visibilidad.")
         fecha_texto = self.get_text(self._lbl_fecha_valor, desc="Fecha en Navbar")
         self.log.info(f"Fecha detectada en sistema: {fecha_texto}")
 
         # Lógica de advertencia (Business Logic)
         if fecha_texto != datetime.now().strftime("%d/%m/%Y"):
-            self.log.warning(f"Desfase detectado: Fecha Negocio ({fecha_texto}) != Fecha Máquina.")
+            self.log.warning(
+                f"ALERTA: Fecha de Negocio desincronizada. "
+                f"Sistema: {fecha_texto} "
+                f"Servidor: {datetime.now().strftime('%d/%m/%Y')}"
+            )
 
         # Interacción con el modal
         self.click(self._link_trigger_fecha, desc="Trigger Modal Fecha")
@@ -80,12 +85,12 @@ class PerfilPage(BasePage):
 
         # Extracción de la versión
         version = self.get_text(self._lbl_version_app, desc="Versión Assembly")
-        self.log.info(f"AUDITORÍA: Versión del ambiente detectada -> {version}")
+        self.log.info(f"--- DATOS DE AUDITORÍA --- Producto: PayStudio  Versión: {version}")
 
         capturar_evidencia(self.page, nombre_caso, "Modal_Version_Ambiente")
 
         # Cierre de modal
         self.click(self._btn_cerrar_modal_version, desc="Cerrar Acerca De")
         self._modal_about.wait_for(state="hidden", timeout=_timeout)
-
+        self.log.debug(f"Estado del modal 'About' tras click en cerrar: {self._modal_about.is_visible()}")
         return version
