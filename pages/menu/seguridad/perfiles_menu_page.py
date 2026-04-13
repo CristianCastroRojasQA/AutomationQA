@@ -26,11 +26,15 @@ class PerfilesMenuPage(MenuSeguridadPage):
         self.link_perfiles_baja_perfil = page.get_by_role("link", name="Baja de Perfil")
         self.log.debug(f"Locator 'link_perfiles_baja_perfil' inicializado.")
 
+        self.log.debug(f"Estructura Perfiles (RoleAdministration) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_perfiles(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Perfiles.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.sub_menu_perfiles, desc="Sub-menú Perfiles"),
@@ -47,6 +51,7 @@ class PerfilesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_perfiles_alta_perfil,
                                desc="Link Alta de Perfil")
         ]
+        self.log.info(f"Destino: RoleAdministration  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="RoleAdministration",
@@ -62,6 +67,7 @@ class PerfilesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_perfiles_mantenimiento_perfil,
                                desc="Link Mantenimiento de Perfil")
         ]
+        self.log.info(f"Destino: RoleAdministration  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="RoleAdministration",
@@ -77,6 +83,7 @@ class PerfilesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_perfiles_baja_perfil,
                                desc="Link Baja de Perfil")
         ]
+        self.log.info(f"Destino: RoleAdministration  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="RoleAdministration",

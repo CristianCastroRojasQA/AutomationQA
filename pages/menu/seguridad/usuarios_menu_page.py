@@ -29,11 +29,15 @@ class UsuariosMenuPage(MenuSeguridadPage):
         self.link_usuario_baja_usuario = page.get_by_role("link", name="Baja de Usuario")
         self.log.debug(f"Locator 'link_usuario_baja_usuario' inicializado.")
 
+        self.log.debug(f"Estructura Usuarios (UserAdministration) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_usuarios(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Usuarios.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.sub_menu_usuarios, desc="Sub-menú Usuarios"),
@@ -50,6 +54,7 @@ class UsuariosMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_usuario_mantenimiento_usuario,
                                desc="Link Mantenimiento de Usuario")
         ]
+        self.log.info(f"Destino: P14CU7101_02Page  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="P14CU7101_02Page",
@@ -65,6 +70,7 @@ class UsuariosMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_usuario_alta_usuario,
                                desc="Link Alta de Usuario")
         ]
+        self.log.info(f"Destino: P14CU7101_02Page  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="P14CU7101_02Page",
@@ -81,6 +87,7 @@ class UsuariosMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_usuario_habilitar_usuario_portal,
                                desc="Link Habilitar Usuario Portal Comercio")
         ]
+        self.log.info(f"Destino: EnablePortalUser  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="EnablePortalUser",
@@ -92,17 +99,16 @@ class UsuariosMenuPage(MenuSeguridadPage):
 
     def navegar_a_usuario_baja_usuario(self, nombre_caso_prueba: str) -> str:
         """Navega a la página 'Baja de Usuario'."""
-        self.log.info(
-            f"Iniciando navegación a 'Baja de Usuario' para el caso: '{nombre_caso_prueba}'.")
+        self.log.info(f"Iniciando navegación a 'Baja de Usuario' para el caso: '{nombre_caso_prueba}'.")
         pasos = self._obtener_pasos_para_usuarios() + [
             lambda: self.click(self.link_usuario_baja_usuario,
                                desc="Link Baja de Usuario")
         ]
+        self.log.info(f"Destino: UnsubscribePortalUser  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="UnsubscribePortalUser",
-            locator_titulo_pagina=self.page.locator("h3").get_by_text(
-                "Baja de Usuario"),
+            locator_titulo_pagina=self.page.locator("h3").get_by_text("Baja de Usuario"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Usuarios_Baja_Usuario",
         )
