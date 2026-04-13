@@ -51,18 +51,29 @@ class Settings:
     def __init__(self):
         """Inicializa y garantiza que el entorno sea seguro para el test."""
         self._preparar_entorno()
+        from utils.logger import get_logger
+        self.log = get_logger("Settings")
         self._ejecutar_auditoria_config()
+
+        self.log.debug(
+            f"Settings cargadas: Browser={self.BROWSER}, "
+            f"Headless={self.HEADLESS}, Timeout={self.TIMEOUT}ms"
+        )
 
     def _preparar_entorno(self):
         """Crea las carpetas necesarias si no existen."""
+        # self.log.debug(f"Inicializando directorios de salida en: {self.ROOT_DIR}")
         self.EVIDENCIAS_DIR.mkdir(parents=True, exist_ok=True)
         self.LOGS_DIR.mkdir(parents=True, exist_ok=True)
+        # self.log.debug(f"Carpeta de evidencias lista en: {self.EVIDENCIAS_DIR}")
 
     def _ejecutar_auditoria_config(self):
         """
         Valida todas las variables críticas.
         Si faltan varias, las reporta todas juntas en un solo error.
         """
+        self.log.info(f"--- INICIO: Auditoría de Configuración para {self.PREFIX} ---")
+
         errores = []
 
         # Validación Web
@@ -81,8 +92,10 @@ class Settings:
                 f"Variables a revisar en .env: {', '.join(errores)}\n"
             )
             # Usamos un print simple antes del error porque el logger podría no estar listo
-            print(mensaje)
+            self.log.critical(mensaje)
             raise ValueError(mensaje)
+
+        self.log.info(f"Configuración validada exitosamente para la URL: {self.URL}")
 
 
 # Instancia global para ser importada: from config.settings import settings
