@@ -1,23 +1,19 @@
 import pytest
 
 from pages.common.perfil_page import PerfilPage
+from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
+from utils.test_orchestrator import TestOrchestrator
 
 
 @pytest.mark.smoke
 @pytest.mark.perfil
 def test_smoke_opciones_perfil(auth, page):
     nombre_caso_prueba = "Smoke_Opciones_Perfil"
-    logger_test = get_logger(nombre_caso_prueba)
+    logger = get_logger(nombre_caso_prueba)
     perfil = PerfilPage(page)
 
-    try:
-        auth.login_con_env(caso=nombre_caso_prueba)
-        logger_test.info("Login exitoso.")
-    except Exception as e:
-        logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
-        pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
+    realizar_login_obligatorio(auth, nombre_caso_prueba, logger)
 
     rutas_perfil = [
         ("Perfil > Fecha de Negocio", perfil.validar_fecha_negocio_modal),
@@ -25,16 +21,13 @@ def test_smoke_opciones_perfil(auth, page):
         ("Perfil > Acerca de", perfil.validar_version_ambiente)
     ]
 
+    logger.debug(f"Configuradas {len(rutas_perfil)} rutas para verificación de disponibilidad.")
+
+    # Orquestación
+    engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
-        ejecutar_rutas_navegacion_continua(
-            page=page,
-            nombre_caso_prueba=nombre_caso_prueba,
-            logger_test=logger_test,
-            rutas_de_navegacion=rutas_perfil,
-        )
+        logger.info("PASO: Orquestando navegación para las opciones del perfil...")
+        engine.ejecutar_flujo(rutas_perfil)
     finally:
-        ejecutar_logout_seguro(
-            flujo_autenticacion=auth,
-            logger_test=logger_test,
-            nombre_caso_prueba=nombre_caso_prueba,
-        )
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
+        finalizar_sesion_segura(auth, logger, nombre_caso_prueba)

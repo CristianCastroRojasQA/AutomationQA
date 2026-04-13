@@ -29,18 +29,24 @@ class ValidacionControlesMenuPage(MenuSeguridadPage):
         self.link_baja_nivel = page.get_by_role("link", name="Baja de Nivel")
         self.log.debug(f"Locator 'sub_menu_baja_nivel' inicializado.")
 
+        self.log.debug(
+            f"Estructura Validacion de Controles (LevelControlMainteinance) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
-    def _obtener_pasos_para_usuarios(self):
+    def _obtener_pasos_para_validacion(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Validación de Controles.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.sub_menu_validacion_controles, desc="Sub-menú Validación Controles"),
         ]
 
     def _obtener_pasos_para_validacion_controles(self):
-        return self._obtener_pasos_para_usuarios() + [
+        self.log.debug("Encadenando: Abrir Seguridad > Validación de Controles > Mantenimiento de Niveles.")
+        return self._obtener_pasos_para_validacion() + [
             lambda: self.hover(self.link_mantenimiento_niveles, desc="Sub-menú Mantenimiento de Nivel"),
         ]
 
@@ -55,6 +61,7 @@ class ValidacionControlesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_alta_nivel,
                                desc="Link Alta de Nivel")
         ]
+        self.log.info(f"Destino: SERUC009  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="SECUC009",
@@ -70,6 +77,7 @@ class ValidacionControlesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_mantenimiento_nivel,
                                desc="Link Mantenimiento de Nivel")
         ]
+        self.log.info(f"Destino: SERUC009  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="SECUC009",
@@ -85,6 +93,7 @@ class ValidacionControlesMenuPage(MenuSeguridadPage):
             lambda: self.click(self.link_baja_nivel,
                                desc="Link Baja de Nivel")
         ]
+        self.log.info(f"Destino: SERUC009  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="SECUC009",

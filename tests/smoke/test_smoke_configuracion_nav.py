@@ -2,8 +2,9 @@ import pytest
 
 from pages.menu.configuracion.adquirente_menu_page import AdquirenteMenuPage
 from pages.menu.configuracion.gestion_listas_menu_page import GestionListasMenuPage
+from utils.common_actions import realizar_login_obligatorio, finalizar_sesion_segura
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_rutas_navegacion_continua, ejecutar_logout_seguro
+from utils.test_orchestrator import TestOrchestrator
 
 
 @pytest.mark.smoke
@@ -13,18 +14,12 @@ def test_smoke_navegacion_menu_configuracion(auth, page):
     SMOKE TEST: Verifica la disponibilidad de todas las pantallas del menú Configuración.
     """
     nombre_caso_prueba = "Smoke_Navegacion_Menu_Configuracion"
-    logger_test = get_logger(nombre_caso_prueba)
+    logger = get_logger(nombre_caso_prueba)
 
     pagina_adquirente_menu = AdquirenteMenuPage(page)
     pagina_gestion_listas_menu = GestionListasMenuPage(page)
 
-    logger_test.info("Paso 1: Iniciando flujo de autenticación (LOGIN).")
-    try:
-        auth.login_con_env(caso=nombre_caso_prueba)
-        logger_test.info("Login exitoso.")
-    except Exception as e:
-        logger_test.critical(f"FALLO CRÍTICO: No se pudo realizar el login. Error: {e}", exc_info=True)
-        pytest.fail(f"El test no puede continuar sin un login exitoso. Error: {e}")
+    realizar_login_obligatorio(auth, nombre_caso_prueba, logger)
 
     rutas_de_navegacion = [
         ("Configuración > Adquirente > Marcas y Modelos de Terminales",
@@ -73,16 +68,12 @@ def test_smoke_navegacion_menu_configuracion(auth, page):
          pagina_gestion_listas_menu.navegar_a_gestion_eliminar_listas_reglas_autorizacion)
     ]
 
+    logger.debug(f"Configuradas {len(rutas_de_navegacion)} rutas para verificación de disponibilidad.")
+
+    engine = TestOrchestrator(page, logger, nombre_caso_prueba)
     try:
-        ejecutar_rutas_navegacion_continua(
-            page=page,
-            nombre_caso_prueba=nombre_caso_prueba,
-            logger_test=logger_test,
-            rutas_de_navegacion=rutas_de_navegacion,
-        )
+        logger.info("PASO: Orquestando navegación para el menú configuración...")
+        engine.ejecutar_flujo(rutas_de_navegacion)
     finally:
-        ejecutar_logout_seguro(
-            flujo_autenticacion=auth,
-            logger_test=logger_test,
-            nombre_caso_prueba=nombre_caso_prueba,
-        )
+        logger.debug("Iniciando bloque de limpieza (Teardown) post-ejecución.")
+        finalizar_sesion_segura(auth, logger, nombre_caso_prueba)

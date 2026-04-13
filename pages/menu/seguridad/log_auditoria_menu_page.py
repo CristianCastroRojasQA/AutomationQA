@@ -16,11 +16,15 @@ class LogAuditoriaPage(MenuSeguridadPage):
         self.link_menu_log_auditoria = page.get_by_role("link", name="Log de Auditoría")
         self.log.debug(f"Locator 'sub_menu_log_auditoria' inicializado.")
 
+        self.log.debug(f"Estructura Log de Auditoría (AUDUC001) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_log_auditoria(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Log de Auditoría.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.link_menu_log_auditoria,
@@ -39,6 +43,7 @@ class LogAuditoriaPage(MenuSeguridadPage):
             lambda: self.click(self.link_menu_log_auditoria,
                                desc="Link Log de Auditoría")
         ]
+        self.log.info(f"Destino: AUDUC001  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AUDUC001",

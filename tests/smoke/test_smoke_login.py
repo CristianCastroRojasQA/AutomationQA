@@ -1,47 +1,42 @@
 import pytest
-
 from pages.login_page import LoginPage
+from utils.common_actions import finalizar_sesion_segura, realizar_login_obligatorio
 from utils.logger import get_logger
-from utils.smoke_navigation_runner import ejecutar_logout_seguro
 
 
 @pytest.mark.smoke
 @pytest.mark.login
 def test_smoke_login_logout_basico(auth, page):
-    """
-    SMOKE TEST: Verifica el ciclo de vida de la sesión (Login y Logout).
-    """
-    nombre_caso_prueba = "Smoke_Login_Basico"
-    logger_test = get_logger(nombre_caso_prueba)
+    nombre_caso = "Smoke_Login_Basico"
+    logger = get_logger(nombre_caso)
     pagina_login = LoginPage(page)
 
+    # Variable de control para saber si el logout ya se hizo
+    logout_realizado = False
+
     try:
-        logger_test.info("Paso 1: Validando que el formulario de login esté disponible.")
+        logger.debug("Comprobando que la página de destino es el formulario de acceso.")
         pagina_login.validar_presencia_login()
+        realizar_login_obligatorio(auth, nombre_caso, logger)
 
-        logger_test.info("Paso 2: Iniciando flujo de autenticación (LOGIN).")
-        nombre_usuario = auth.login_con_env(caso=nombre_caso_prueba)
+        logger.info("PASO: Ejecutando cierre de sesión funcional desde la UI.")
 
-        assert nombre_usuario, "El login se ejecutó, pero no se detectó el nombre del usuario en el Home."
-        logger_test.info(f"Login exitoso para el usuario: {nombre_usuario}")
+        # Logout funcional (el que queremos probar)
+        auth.logout(caso=nombre_caso)
+        logout_realizado = True  # Marcamos como completado
 
-    except Exception as e:
-        logger_test.critical(f"FALLO CRÍTICO en el flujo de Login. Error: {e}", exc_info=True)
-        pytest.fail(f"El Smoke de Login falló. Revisar capturas. Error: {e}")
+        pagina_login.validar_retorno_a_login()
+
+        logger.info("FIN: Verificación de retorno a pantalla de acceso exitosa.")
 
     finally:
-        logger_test.info("Paso 3: Ejecutando cierre de sesión seguro.")
-        ejecutar_logout_seguro(
-            flujo_autenticacion=auth,
-            logger_test=logger_test,
-            nombre_caso_prueba=nombre_caso_prueba,
-        )
-
-        try:
-            pagina_login.validar_retorno_a_login()
-            logger_test.info("Paso 4: Retorno a pantalla de Login validado correctamente.")
-        except Exception as e:
-            logger_test.warning(f"No se pudo confirmar visualmente el retorno al Login tras el Logout. Error: {e}",
-                                exc_info=True)
-
-    logger_test.info(f"FIN: SMOKE TEST '{nombre_caso_prueba}' completado.")
+        # SOLO ejecutamos la limpieza técnica si el logout funcional NO se completó
+        # Esto elimina el WARNING cuando el test sale bien
+        if not logout_realizado:
+            logger.warning(
+                f"TEARDOWN: Ejecutando salida forzada para {nombre_caso}. "
+                "El flujo no cerró sesión solo."
+            )
+            finalizar_sesion_segura(auth, logger, nombre_caso)
+        else:
+            logger.debug("TEARDOWN: Sesión previamente cerrada. Saltando limpieza preventiva.")

@@ -3,7 +3,7 @@ from playwright.sync_api import Page
 from pages.configuracion.adquirente.base_catalogo_page import BaseCatalogoPage
 
 
-class TecnologiaPage(BaseCatalogoPage):
+class TecnologiasPage(BaseCatalogoPage):
     """
     Page Object para la sección de 'Tecnología'.
     Hereda toda la funcionalidad del catálogo base.
@@ -25,3 +25,12 @@ class TecnologiaPage(BaseCatalogoPage):
     # ------------------------------------------------------------------
     def __init__(self, page: Page):
         super().__init__(page, logger_name="TecnologiaPage")
+        self.log.debug(
+            f"Cargando configuración específica para Tecnologías (ABCUC022). "
+            f"MaxLen: {self.INPUT_MAX_LENGTH}"
+        )
+
+        self.log.info(
+            "Contexto de 'Tecnologías' establecido. "
+            "Selectores vinculados a la sección ABCUC022."
+        )

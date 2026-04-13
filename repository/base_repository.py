@@ -4,7 +4,6 @@ from utils.sql_formatter import format_sql
 import time
 
 logger = get_logger("Repository")
-logger.setLevel("DEBUG")
 
 
 class BaseRepository(ABC):
@@ -21,6 +20,7 @@ class BaseRepository(ABC):
             params=None,
             resultado=None
     ):
+        logger.debug(f"Ejecutando consulta SQL en módulo: {modulo}")
         logger.debug("")
         logger.debug("[DB][%s][%s]", modulo, operacion)
         logger.debug("---------- SQL ----------------------------------")
@@ -36,7 +36,7 @@ class BaseRepository(ABC):
             logger.debug("Resultado: %s", resultado)
 
     # ------------------------------------------------------------------
-    # ✅ CONTRATO OBLIGATORIO
+    # CONTRATO OBLIGATORIO
     # ------------------------------------------------------------------
     @abstractmethod
     def obtener_registro(self, nombre: str) -> dict | None:
@@ -46,7 +46,7 @@ class BaseRepository(ABC):
         pass
 
     # ------------------------------------------------------------------
-    # ✅ Lógica común de infraestructura
+    # Lógica común de infraestructura
     # ------------------------------------------------------------------
     def esperar_no_existencia(
             self,
@@ -58,11 +58,22 @@ class BaseRepository(ABC):
         Espera activa hasta que el registro deje de existir en DB.
         """
 
+        logger.info(f"INICIO: Esperando eliminación física de '{nombre}' en la base de datos...")
+
         inicio = time.time()
 
         while time.time() - inicio < timeout_segundos:
+            logger.debug(
+                f"Reintentando verificación de existencia para '{nombre}'... "
+                f"(Tiempo transcurrido: {round(time.time() - inicio, 1)}s)"
+            )
             if not self.obtener_registro(nombre):
+                logger.info(f"FIN: Registro '{nombre}' ya no existe en la base de datos.")
+
                 return True
             time.sleep(intervalo_segundos)
-
+        logger.warning(
+            f"El registro '{nombre}' sigue presente tras {timeout_segundos}s. "
+            "Es posible que el borrado haya fallado o sea lento."
+        )
         return False

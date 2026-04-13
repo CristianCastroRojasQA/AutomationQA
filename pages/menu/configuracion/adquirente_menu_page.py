@@ -79,6 +79,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
                                                                                      name="Mantenimiento Parámetros Cálculo MDR")
         self.log.debug(f"Locator 'link_adquirente_mantenimiento_parametros_calculo_mdr' inicializado.")
 
+        self.log.debug(f"Estructura Adquirente (ABCUC) mapeada. {len(self.__dict__)} enlaces detectados.")
         self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
 
     # ------------------------------------------------------------------
@@ -86,22 +87,26 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_adquirente(self):
+        self.log.debug("Encadenando: Abrir Configuración > Adquirente.")
         return [
             self._obtener_paso_abrir_menu_configuracion(),
             lambda: self.hover(self.sub_menu_adquirente, desc="Sub-menú Adquirente"),
         ]
 
     def _obtener_pasos_para_terminales(self):
+        self.log.debug("Encadenando: Abrir Configuración > Adquirente > Marcas y Modelos de Terminales.")
         return self._obtener_pasos_para_adquirente() + [
             lambda: self.hover(self.sub_menu_terminales, desc="Sub-menú Terminales"),
         ]
 
     def _obtener_pasos_para_productos(self):
+        self.log.debug("Encadenando: Abrir Configuración > Adquirente > Productos.")
         return self._obtener_pasos_para_adquirente() + [
             lambda: self.hover(self.sub_menu_producto, desc="Sub-menú Producto"),
         ]
 
     def _obtener_pasos_para_condiciones_comerciales(self):
+        self.log.debug("Encadenando: Abrir Configuración > Adquirente > Condiciones Comerciales.")
         return self._obtener_pasos_para_adquirente() + [
             lambda: self.hover(self.sub_menu_condiciones_comerciales, desc="Sub-menú Condiciones Comerciales"),
         ]
@@ -117,6 +122,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_marcas_y_modelos_terminales,
                                desc="Link Marcas y Modelos de Terminales")
         ]
+        self.log.info(f"Destino: ABCUC022  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC022",
@@ -131,6 +137,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_alta_terminal, desc="Link Alta de Terminal"),
         ]
+        self.log.info(f"Destino: ABCUC023  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC023",
@@ -145,6 +152,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_mantenimiento_terminales, desc="Link Mantenimiento de Terminales")
         ]
+        self.log.info(f"Destino: ABCUC024  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC024",
@@ -159,6 +167,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_terminales() + [
             lambda: self.click(self.link_terminales_alta_masiva_terminales, desc="Link Alta Masiva de Terminales"),
         ]
+        self.log.info(f"Destino: ABCUC039  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC039",
@@ -174,6 +183,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_terminales_consulta_stock_terminales,
                                desc="Link Consulta Stock de Terminales"),
         ]
+        self.log.info(f"Destino: Check-Terminal-Stock  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="Check-Terminal-Stock",
@@ -188,6 +198,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_productos() + [
             lambda: self.click(self.link_producto_alta_producto, desc="Link Alta de Producto"),
         ]
+        self.log.info(f"Destino: ABCUC025_AddProduct  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_AddProduct",
@@ -202,6 +213,8 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
         pasos = self._obtener_pasos_para_productos() + [
             lambda: self.click(self.link_producto_mantenimiento_producto, desc="Link Mantenimiento de Producto"),
         ]
+        self.log.info(
+            f"Destino: ABCUC025_ModifyProduct  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC025_ModifyProduct",
@@ -218,6 +231,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_calendario,
                                desc="Link Mantenimiento de Calendario Adquirente"),
         ]
+        self.log.info(f"Destino: ABCUC015  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC015",
@@ -233,6 +247,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_tasa_cambio,
                                desc="Link Mantenimiento Tasa de Cambio"),
         ]
+        self.log.info(f"Destino: ABCUC016  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC016",
@@ -249,6 +264,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_mantenimiento_condiciones_comerciales,
                                desc="Link Mantenimiento de Condiciones Comerciales"),
         ]
+        self.log.info(f"Destino: AMUC016  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMUC016",
@@ -265,6 +281,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_mantenimiento_condiciones_promocionales,
                                desc="Link Mantenimiento de Condiciones Promocionales")
         ]
+        self.log.info(f"Destino: AMRUC045  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC045",
@@ -280,6 +297,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_condiciones_reporte_condiciones_comerciales,
                                desc="Link Reporte de Condiciones Comerciales"),
         ]
+        self.log.info(f"Destino: AMRUC047  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMRUC047",
@@ -295,6 +313,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_grupo_economico,
                                desc="Link Mantenimiento de Grupo Económico"),
         ]
+        self.log.info(f"Destino: ABCUC046 Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC046",
@@ -311,6 +330,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_actividad_economica,
                                desc="Link Mantenimiento de Actividad Económica"),
         ]
+        self.log.info(f"Destino: ABCUC047 Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ABCUC047",
@@ -327,6 +347,7 @@ class AdquirenteMenuPage(MenuConfiguracionPage):
             lambda: self.click(self.link_adquirente_mantenimiento_parametros_calculo_mdr,
                                desc="Link Mantenimiento de Parámetros Cálculo MDR"),
         ]
+        self.log.info(f"Destino: mdr-brand-parameters Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="mdr-brand-parameters",

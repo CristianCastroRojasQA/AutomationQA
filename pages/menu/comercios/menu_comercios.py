@@ -34,16 +34,21 @@ class MenuComerciosPage(BasePage):
         self.sub_menu_consulta_transacciones = page.get_by_role("link", name="Consulta de Transacciones")
         self.log.debug("Locator 'sub_menu_consulta_transacciones' inicializado.")
 
-    # ------------------------------------------------------------------
-    # Pasos reutilizables para construir secuencias de navegación
-    # ------------------------------------------------------------------
+        self.log.debug(f"Mapeando sub-menús de Comercios. Total locators: {len(self.__dict__)}")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+        # ------------------------------------------------------------------
+        # Pasos reutilizables para construir secuencias de navegación
+        # ------------------------------------------------------------------
 
     def abrir_menu_comercios(self):
         """Hace click en el menú principal de Comercios."""
+        self.log.info("[NAV] Desplegando menú principal de Comercios (#MERCHANT_KEY)")
+        self.log.debug("Esperando que el menú de comercios sea interactuable (Clickable).")
         self.click(self.link_menu_principal_comercios, desc="Menú Comercios")
 
     def _obtener_paso_abrir_menu_comercios(self) -> Callable[[], None]:
         """Retorna un callable para el paso de abrir el menú de comercios."""
+        self.log.debug("Encadenando: Abrir Comercios.")
         return lambda: self.abrir_menu_comercios()
 
     # ------------------------------------------------------------------
@@ -58,7 +63,7 @@ class MenuComerciosPage(BasePage):
             self._obtener_paso_abrir_menu_comercios(),
             lambda: self.click(self.sub_menu_consultar_comercio, desc="Consultar Comercio / Sucursal"),
         ]
-
+        self.log.info(f"Destino: AMUC008  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMUC008",
@@ -71,16 +76,15 @@ class MenuComerciosPage(BasePage):
     def navegar_a_alta_comercio(self, nombre_caso_prueba: str) -> str:
         """Navega a la página 'Alta de Comercio'."""
         self.log.info(f"Iniciando navegación a 'Alta de Comercio' para el caso: '{nombre_caso_prueba}'.")
-
         pasos = [
             self._obtener_paso_abrir_menu_comercios(),
             lambda: self.click(self.sub_menu_alta_comercio, desc="Alta de Comercios"),
         ]
-
+        self.log.info(f"Destino: AMUC002  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
+        self.log.info("Accediendo al Wizard de Alta (AMUC002). Validando Paso 1.")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMUC002",
-            # Cambiado de span[id$='...'] a texto visible (Paso 1 del wizard de alta)
             locator_titulo_pagina=self.page.get_by_text("Información Básica (Paso 1 de 12)"),
             nombre_caso_prueba=nombre_caso_prueba,
             etiqueta_evidencia="Comercios_Alta_Comercio",
@@ -95,7 +99,7 @@ class MenuComerciosPage(BasePage):
             self._obtener_paso_abrir_menu_comercios(),
             lambda: self.click(self.sub_menu_mantenimiento_preafiliacion, desc="Mantenimiento Preafiliación Comercio"),
         ]
-
+        self.log.info(f"Destino: AMDUC002  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMDUC002",
@@ -112,7 +116,7 @@ class MenuComerciosPage(BasePage):
             self._obtener_paso_abrir_menu_comercios(),
             lambda: self.click(self.sub_menu_alta_preafiliacion, desc="Alta Preafiliación Comercio"),
         ]
-
+        self.log.info(f"Destino: AMDUC001  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="AMDUC001",
@@ -124,12 +128,15 @@ class MenuComerciosPage(BasePage):
     def navegar_a_consulta_transacciones(self, nombre_caso_prueba: str) -> str:
         """Navega a la página 'Consulta de Transacciones'."""
         self.log.info(f"Iniciando navegación a 'Consulta de Transacciones' para el caso: '{nombre_caso_prueba}'.")
-
+        self.log.warning(
+            "Navegando a Consulta de Transacciones. "
+            "Este módulo suele requerir tiempos de carga mayores."
+        )
         pasos = [
             self._obtener_paso_abrir_menu_comercios(),
             lambda: self.click(self.sub_menu_consulta_transacciones, desc="Consulta de Transacciones"),
         ]
-
+        self.log.info(f"Destino: ATXUC012  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="ATXUC012",

@@ -25,3 +25,11 @@ class MarcasPage(BaseCatalogoPage):
     # ------------------------------------------------------------------
     def __init__(self, page: Page):
         super().__init__(page, logger_name="MarcasPage")
+        self.log.debug(
+            f"Cargando configuración específica para Marcas (ABCUC022). "
+            f"MaxLen: {self.INPUT_MAX_LENGTH}"
+        )
+        self.log.info(
+            "Contexto de 'Marcas' establecido. "
+            "Selectores vinculados a la sección ABCUC022."
+        )

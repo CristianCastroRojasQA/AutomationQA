@@ -1,9 +1,24 @@
 import textwrap
 
+from utils.logger import get_logger
+
+log = get_logger("SQLFormatter")
+
 
 def format_sql(query: str) -> str:
     """
-    Normaliza el SQL eliminando indentación innecesaria,
-    preservando saltos de línea y formato semántico.
+    Limpia y normaliza el formato de una consulta SQL para su lectura.
     """
-    return textwrap.dedent(query).strip()
+    if not query:
+        log.warning(
+            "Se intentó formatear una cadena SQL vacía o None."
+        )
+        return "QUERY VACIA"
+
+    sql_normalizado = textwrap.dedent(query).strip()
+
+    log.debug(
+        f"SQL normalizado exitosamente ({len(query)} caracteres)."
+    )
+
+    return sql_normalizado

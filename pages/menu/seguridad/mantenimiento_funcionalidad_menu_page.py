@@ -13,14 +13,20 @@ class MantenimientoFuncionalidadPage(MenuSeguridadPage):
         self.log.debug(f"Inicializando locators para {self.__class__.__name__}.")
 
         # NIVEL 2: (Sub-dropdown)
-        self.link_menu_mantenimiento_funcionalidad = page.get_by_role("link", name="Mantenimiento de Funcionalidad", exact=True)
+        self.link_menu_mantenimiento_funcionalidad = page.get_by_role("link", name="Mantenimiento de Funcionalidad",
+                                                                      exact=True)
         self.log.debug(f"Locator 'sub_menu_mantenimiento_funcionalidad' inicializado.")
+
+        self.log.debug(
+            f"Estructura Mantenimiento de Funcionalidad (LevelAdminFunctionality) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
 
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_mantenimiento_funcionalidad(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Mantenimiento de Funcionalidad.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.link_menu_mantenimiento_funcionalidad,
@@ -38,6 +44,7 @@ class MantenimientoFuncionalidadPage(MenuSeguridadPage):
             lambda: self.click(self.link_menu_mantenimiento_funcionalidad,
                                desc="Link Mantenimiento de Funcionalidad")
         ]
+        self.log.info(f"Destino: SECUC008  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="SECUC008",

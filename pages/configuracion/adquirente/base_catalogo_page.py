@@ -5,38 +5,47 @@ from pages.base_page import BasePage
 
 class BaseCatalogoPage(BasePage, ABC):
     """
-    Page Object abstracto para catálogos genéricos.
-    Proporciona la estructura base para pantallas con secciones de gestión,
-    grids de datos y formularios de entrada.
+    Page Object abstracto para catálogos genéricos (Marcas, Tecnologías, etc).
+
+    Regla del POM:
+    - Selectores (constructores) primero
+    - Luego helpers de estado
+    - Luego acciones
+    - Luego búsquedas
     """
 
-    # ------------------------------------------------------------------
-    # Propiedades Abstractas (Deberán definirse en la clase hija)
-    # ------------------------------------------------------------------
-    SECTION_TITLE: str  # Título de la sección (ej: "Marcas")
-    INPUT_MAX_LENGTH: str  # Longitud máxima permitida en el input
-    WARNING_DUPLICADO_TEXT: str  # Texto de alerta para registros duplicados
-    ERROR_ELIMINAR_RELACION_TEXT: str  # Texto de error por integridad referencial
+    # ============================================================
+    # Propiedades abstractas (definidas en clases hijas)
+    # ============================================================
+    SECTION_TITLE: str
+    INPUT_MAX_LENGTH: str
+    WARNING_DUPLICADO_TEXT: str
+    ERROR_ELIMINAR_RELACION_TEXT: str
 
-    # ------------------------------------------------------------------
-    # Constantes de Aplicación
-    # ------------------------------------------------------------------
+    # ============================================================
+    # Constantes de aplicación
+    # ============================================================
     SUCCESS_TEXT = "Marcas y Modelos actualizados correctamente"
 
-    # ------------------------------------------------------------------
-    # Constructor e Inicialización
-    # ------------------------------------------------------------------
+    # ============================================================
+    # Constructor
+    # ============================================================
     def __init__(self, page: Page, logger_name: str):
         super().__init__(page, logger_name=logger_name)
         self.page = page
+        self.log.debug(f"Selectores inicializados para la sección: {self.SECTION_TITLE}")
 
-        # Contenedor principal delimitado por el título de sección
+        # --------------------------------------------------------
+        # Contenedor principal de la sección
+        # --------------------------------------------------------
         self.seccion_contenedor = self.page.locator(
             "div.custom-titles-width",
             has=self.page.locator("h5", has_text=self.SECTION_TITLE)
         )
 
-        # Botones de Acción Global (Pantalla completa)
+        # --------------------------------------------------------
+        # Botones globales
+        # --------------------------------------------------------
         self.btn_guardar = self.page.locator(
             "app-button .btn.btn-info",
             has_text="Guardar"
@@ -46,12 +55,9 @@ class BaseCatalogoPage(BasePage, ABC):
             has_text="Cancelar"
         )
 
-        # Controles de Paginación (Internos a la sección)
-        self.btn_siguiente = self.seccion_contenedor.locator("button .icon-step-forward")
-        self.btn_ultima_pag = self.seccion_contenedor.locator("button .icon-fast-forward")
-        self.paginador_info = self.seccion_contenedor.locator(".cart-datagrid-pager-text")
-
-        # Alertas y Feedback del Sistema
+        # --------------------------------------------------------
+        # Alertas
+        # --------------------------------------------------------
         self.alert_success = self.page.locator(
             "div.alert.alert-success",
             has_text=self.SUCCESS_TEXT
@@ -68,134 +74,320 @@ class BaseCatalogoPage(BasePage, ABC):
             "div.alert.alert-error, div.alert.alert-danger"
         )
 
-    # ------------------------------------------------------------------
-    # Locators Dinámicos
-    # ------------------------------------------------------------------
-    def input_principal(self) -> Locator:
-        """Input de texto principal del formulario."""
-        return self.seccion_contenedor.locator(
-            f'input[type="text"][maxlength="{self.INPUT_MAX_LENGTH}"]'
+        # --------------------------------------------------------
+        # Contenedor del paginador
+        # --------------------------------------------------------
+        self.paginador_contenedor = self.seccion_contenedor.locator(
+            "div.cart-datagrid-footer"
         )
 
-    def btn_incluir(self) -> Locator:
-        """Botón para agregar un nuevo registro a la tabla."""
-        return self.seccion_contenedor.locator("div.btn.btn-small", has_text="Incluir")
+        # --------------------------------------------------------
+        # Botones del paginador (TODOS)
+        # --------------------------------------------------------
+        self.btn_paginador_primero = self.paginador_contenedor.locator(
+            "button:has(span.icon-fast-backward)"
+        )
+        self.btn_paginador_anterior = self.paginador_contenedor.locator(
+            "button:has(span.icon-step-backward)"
+        )
+        self.btn_paginador_siguiente = self.paginador_contenedor.locator(
+            "button:has(span.icon-step-forward)"
+        )
+        self.btn_paginador_ultimo = self.paginador_contenedor.locator(
+            "button:has(span.icon-fast-forward)"
+        )
 
-    def btn_eliminar(self) -> Locator:
-        """Botón para quitar el registro seleccionado."""
-        return self.seccion_contenedor.locator("div.btn.btn-small", has_text="Eliminar")
+        # --------------------------------------------------------
+        # Input y texto de paginación
+        # --------------------------------------------------------
+        self.input_pagina_actual = self.paginador_contenedor.locator(
+            "input.input-page[type='number']"
+        )
+        self.texto_paginacion = self.paginador_contenedor.locator(
+            ".cart-datagrid-pager-text"
+        )
 
-    def msg_error_campo(self) -> Locator:
-        """Mensaje de error asociado a la validación del input."""
-        return self.seccion_contenedor.locator("app-control-error-message")
+        # --------------------------------------------------------
+        # Grid Wijmo
+        # --------------------------------------------------------
+        self.grid_root = self.seccion_contenedor.locator(
+            "wj-flex-grid div[wj-part='cells'][role='grid']"
+        )
+        self.grid_cells = self.seccion_contenedor.locator(
+            "wj-flex-grid [role='gridcell']"
+        )
+        self.grid_fila_seleccionada = self.seccion_contenedor.locator(
+            "[role='gridcell'][aria-selected='true']"
+        )
 
-    def grid_cells(self) -> Locator:
-        """Celdas de datos dentro del grid (Wijmo)."""
-        return self.seccion_contenedor.locator('wj-flex-grid [role="gridcell"]')
+        # --------------------------------------------------------
+        # Formulario
+        # --------------------------------------------------------
+        self.input_principal = self.seccion_contenedor.locator(
+            f'input[type="text"][maxlength="{self.INPUT_MAX_LENGTH}"]'
+        )
+        self.msg_error_campo = self.seccion_contenedor.locator(
+            "app-control-error-message"
+        )
 
-    # ------------------------------------------------------------------
-    # Acciones (Verbos)
-    # ------------------------------------------------------------------
+        # --------------------------------------------------------
+        # Botones CRUD locales
+        # --------------------------------------------------------
+        self.btn_incluir = self.seccion_contenedor.locator(
+            "div.btn.btn-small",
+            has_text="Incluir"
+        )
+        self.btn_eliminar = self.seccion_contenedor.locator(
+            "div.btn.btn-small",
+            has_text="Eliminar"
+        )
+
+    # ============================================================
+    # Helpers de estado y sincronización
+    # ============================================================
+    def esperar_grid_renderizado(self, timeout_ms: int = 15000):
+        """Garantiza que el grid Wijmo esté estable y renderizado."""
+        self.log.info("[WAIT] Grid renderizado")
+        expect(self.grid_root).to_be_visible(timeout=timeout_ms)
+        self.log.debug(
+            f"Estado del grid: Visibilidad={self.grid_root.is_visible()}, "
+            f"Count={self.grid_cells.count()}"
+        )
+        self.page.wait_for_load_state("networkidle")
+
+    @staticmethod
+    def es_boton_habilitado(boton: Locator) -> bool:
+        """Evalúa si un botón está habilitado."""
+        return not boton.is_disabled()
+
+    def esta_en_primera_pagina(self) -> bool:
+        return not self.es_boton_habilitado(self.btn_paginador_anterior)
+
+    def esta_en_ultima_pagina(self) -> bool:
+        return not self.es_boton_habilitado(self.btn_paginador_siguiente)
+
+    # ============================================================
+    # Acciones de formulario
+    # ============================================================
     def escribir_valor(self, texto: str):
-        """Escribe el texto proporcionado en el input principal."""
-        self.log.info(f"[FILL] Valor = '{texto}'")
+        self.log.info(f"[FILL] '{texto}'")
         expect(self.seccion_contenedor).to_be_visible()
-        self.input_principal().fill(texto)
+        self.input_principal.fill(texto)
 
+    # ============================================================
+    # Acciones CRUD
+    # ============================================================
     def click_incluir(self):
-        """Ejecuta el click en el botón de inclusión de la sección."""
         self.log.info("[CLICK] Incluir")
-        self.btn_incluir().click()
+        self.btn_incluir.click()
 
     def seleccionar_registro_en_grid(self, texto: str):
-        """Busca y selecciona una fila en el grid basándose en el texto."""
-        self.log.info(f"[GRID] Seleccionar fila con texto: '{texto}'")
-        self.grid_cells().filter(has_text=texto).first.click()
+        """
+        Selecciona un registro en el grid Wijmo haciendo click
+        sobre la celda que contiene el texto indicado.
+        """
+        self.log.info(f"[GRID] Seleccionando registro con texto: '{texto}'")
+        self.esperar_grid_renderizado()
+
+        celda = self.grid_cells.filter(has_text=texto).first
+        if not celda.is_visible():
+            self.log.error(
+                f"FAILED SELECTION: El registro '{texto}' no es visible o no existe en el DOM actual."
+            )
+            raise AssertionError(
+                f"BUG: No se encontró el registro '{texto}' para seleccionar en la grilla"
+            )
+
+        celda.click()
 
     def click_eliminar(self):
-        """Ejecuta el click en el botón de eliminación de la sección."""
         self.log.info("[CLICK] Eliminar")
-        self.btn_eliminar().click()
+        self.btn_eliminar.click()
 
     def click_guardar(self):
-        """Click en el botón Guardar general de la pantalla."""
-        self.log.info("[CLICK] Guardar global")
+        self.log.info("[CLICK] Guardar")
         self.btn_guardar.click()
 
     def click_cancelar(self):
-        """Click en el botón Cancelar general de la pantalla."""
-        self.log.info("[CLICK] Cancelar global")
+        self.log.info("[CLICK] Cancelar]")
         self.btn_cancelar.click()
 
     def recargar_pagina(self):
-        """Refresca el sitio para verificar persistencia de datos."""
-        self.log.info("[ACTION] Recargar página")
+        self.log.info("[ACTION] Reload page")
         self.page.reload()
-        self.page.wait_for_load_state("domcontentloaded")
+        self.page.wait_for_load_state("networkidle")
 
-    # ------------------------------------------------------------------
-    # Consultas de Estado (Queries)
-    # ------------------------------------------------------------------
-    def obtener_conteo_grid(self) -> int:
-        """Retorna la cantidad de celdas/registros visibles en el grid."""
-        return self.grid_cells().count()
+    # ============================================================
+    # Acciones del paginador
+    # ============================================================
+    def ir_a_primera_pagina(self):
+        self.log.info("[PAGINADOR] Ir a primera página")
+        if self.es_boton_habilitado(self.btn_paginador_primero):
+            self.btn_paginador_primero.click()
+            self.esperar_grid_renderizado()
 
-    def esta_registro_visible(self, texto: str) -> bool:
-        """Verifica si un registro específico existe en la vista actual del grid."""
-        return self.grid_cells().filter(has_text=texto).count() > 0
+    def ir_a_ultima_pagina(self):
+        self.log.info("[PAGINADOR] Ir a última página")
+        if self.es_boton_habilitado(self.btn_paginador_ultimo):
+            self.btn_paginador_ultimo.click()
+            self.esperar_grid_renderizado()
 
-    def obtener_valor_input(self) -> str:
-        """Captura el texto actual del campo de entrada."""
-        return self.input_principal().input_value()
+    def avanzar_pagina(self) -> bool:
+        if not self.es_boton_habilitado(self.btn_paginador_siguiente):
+            return False
+        self.log.info("[PAGINADOR] Avanzar página")
+        self.log.debug(
+            f"Paginación: Avanzando... Botón siguiente habilitado: "
+            f"{not self.btn_paginador_siguiente.is_disabled()}"
+        )
+        self.btn_paginador_siguiente.click()
+        self.esperar_grid_renderizado()
+        return True
 
-    def es_boton_eliminar_deshabilitado(self) -> bool:
-        """Evalúa si el botón eliminar tiene estado deshabilitado por CSS."""
-        cls = self.btn_eliminar().get_attribute("class") or ""
-        return "disabled" in cls
+    def retroceder_pagina(self) -> bool:
+        if not self.es_boton_habilitado(self.btn_paginador_anterior):
+            return False
+        self.log.info("[PAGINADOR] Retroceder página")
+        self.btn_paginador_anterior.click()
+        self.esperar_grid_renderizado()
+        return True
+
+    # ============================================================
+    # Queries
+    # ============================================================
+
+    def es_boton_eliminar_habilitado(self) -> bool:
+        return not self.btn_eliminar.is_disabled()
+
+    def obtener_texto_alerta_exito(self) -> str:
+        """
+        Retorna únicamente el texto funcional del mensaje de éxito,
+        excluyendo íconos, encabezados y botones de cierre.
+        """
+        self.log.info("[QUERY] Obtener texto funcional del mensaje de éxito")
+        # Extrae solo el texto visible que corresponde al mensaje de negocio
+        texto = self.alert_success.inner_text()
+        texto_limpio = (
+            texto
+            .replace("×", "")
+            .replace("Notificación!", "")
+            .strip()
+        )
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
+        return texto_limpio
+
+    def obtener_texto_alerta_warning(self) -> str:
+        """
+        Retorna únicamente el texto funcional del mensaje de warning,
+        excluyendo íconos, encabezados y botones de cierre.
+        """
+        self.log.info("[QUERY] Obtener texto funcional del mensaje de advertencia")
+        # Extrae solo el texto visible que corresponde al mensaje de negocio
+        texto = self.alert_warning_duplicado.inner_text()
+        texto_limpio = (
+            texto
+            .replace("×", "")
+            .replace("Notificación!", "")
+            .strip()
+        )
+
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
+        return texto_limpio
+
+    def obtener_texto_alerta_error_relacion(self) -> str:
+        """
+        Retorna únicamente el texto funcional del mensaje de error
+        al intentar eliminar una marca que posee relaciones.
+        """
+        self.log.info("[QUERY] Obtener texto funcional del mensaje de error por relación")
+
+        texto = self.alert_error_eliminar_relacion.inner_text()
+
+        texto_limpio = (
+            texto
+            .replace("×", "")
+            .replace("Han ocurrido errores!", "")
+            .strip()
+        )
+        self.log.debug(f"Limpiando mensaje UI. Original: '{texto}'  Resultado: '{texto_limpio}'")
+        return texto_limpio
 
     def es_input_invalido(self) -> bool:
-        """Verifica si el input tiene la clase de error de Angular (ng-invalid)."""
-        cls = self.input_principal().get_attribute("class") or ""
+        cls = self.input_principal.get_attribute("class") or ""
+        self.log.debug(f"Validación de clases CSS en input: '{cls}'")
         return "ng-invalid" in cls
 
-    # ------------------------------------------------------------------
-    # Sincronización y Esperas de UI
-    # ------------------------------------------------------------------
+    def obtener_valor_input(self) -> str:
+        """
+        Retorna el valor actual escrito en el input principal del formulario.
+        Se usa para validaciones de longitud, truncamiento y estado del campo.
+        """
+        self.log.info("[QUERY] Obtener valor actual del input principal")
+        return self.input_principal.input_value()
+
+    def obtener_conteo_grid(self) -> int:
+        """
+        Retorna la cantidad de registros visibles en el grid.
+        Se usa para validar que la grilla no se modifique indebidamente.
+        """
+        self.log.info("[QUERY] Obtener conteo de registros en la grilla")
+        self.esperar_grid_renderizado()
+        return self.grid_cells.count()
+
+    def es_alerta_exito_visible(self) -> bool:
+        """
+        Verifica si el mensaje de éxito está visible actualmente.
+        NO espera, solo consulta estado.
+        """
+        self.log.info("[QUERY] ¿Alerta de éxito visible?")
+        return self.alert_success.is_visible()
+
+    # ============================================================
+    # Alertas
+    # ============================================================
     def esperar_alerta_exito(self, timeout_ms: int = 15000):
-        """Espera el mensaje de éxito y realiza scroll al inicio."""
         self.log.info("[WAIT] Alert Success")
         expect(self.alert_success).to_be_visible(timeout=timeout_ms)
         self.page.evaluate("window.scrollTo(0, 0)")
 
-    def es_alerta_exito_visible(self) -> bool:
-        """Comprobación inmediata de visibilidad del mensaje de éxito."""
-        return self.alert_success.count() > 0 and self.alert_success.first.is_visible()
-
     def esperar_alerta_duplicado(self, timeout_ms: int = 15000):
-        """Espera el mensaje de advertencia por duplicidad."""
         self.log.info("[WAIT] Alert Warning Duplicado")
         expect(self.alert_warning_duplicado).to_be_visible(timeout=timeout_ms)
         self.page.evaluate("window.scrollTo(0, 0)")
 
-    # ------------------------------------------------------------------
-    # Navegación y Búsqueda Avanzada
-    # ------------------------------------------------------------------
+    def esperar_alerta_error_relacion(self, timeout_ms: int = 15000):
+        self.log.info("[WAIT] Alert Error Eliminado")
+        expect(self.alert_error_eliminar_relacion).to_be_visible(timeout=timeout_ms)
+        self.page.evaluate("window.scrollTo(0, 0)")
+
+    # ============================================================
+    # Búsqueda en paginación
+    # ============================================================
     def buscar_en_paginacion(self, texto: str) -> bool:
         """
-        Navega por las páginas del grid buscando un registro específico.
-        Retorna True si lo encuentra, False si llega al final sin éxito.
+        Busca un registro recorriendo toda la grilla, de forma determinística.
         """
-        self.log.info(f"[SEARCH] Iniciando búsqueda de '{texto}' en el paginado...")
-
+        self.log.info(f"[SEARCH] Iniciando escaneo de grilla para el valor: '{texto}'")
+        if not self.esta_en_primera_pagina():
+            self.ir_a_primera_pagina()
         while True:
-            if self.grid_cells().filter(has_text=texto).count() > 0:
-                self.log.info(f"[SEARCH] Registro '{texto}' encontrado.")
+            self.esperar_grid_renderizado()
+            if self.grid_cells.filter(has_text=texto).count() > 0:
+                self.log.info("[SEARCH] Registro encontrado")
                 return True
-
-            if self.btn_siguiente.is_disabled():
-                self.log.warning(f"[SEARCH] Fin de tabla. No se encontró: '{texto}'")
+            if not self.avanzar_pagina():
+                self.log.warning("[SEARCH] Fin de paginación. No encontrado")
                 return False
 
-            self.log.info("[SEARCH] No presente en esta página. Avanzando...")
-            self.btn_siguiente.click()
-            self.page.wait_for_timeout(500)  # Pausa para refresco de DOM en Wijmo
+    def preparar_registro_para_eliminacion(self, texto: str):
+        """
+        Busca y deja el registro seleccionado en un estado válido
+        para permitir la eliminación.
+        """
+        self.log.info(f"[GRID] Preparando registro para eliminación: {texto}")
+
+        if not self.buscar_en_paginacion(texto):
+            raise AssertionError(f"No se encontró el registro '{texto}'")
+
+        celda = self.grid_cells.filter(has_text=texto).first
+        celda.click()

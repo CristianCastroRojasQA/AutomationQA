@@ -23,13 +23,12 @@ def log_ciclo_vida_test(request):
     logger_test = get_logger(nombre_caso)
 
     # Mensaje de Inicio
-    logger_test.info(f"INICIO: Ejecutando {nombre_caso}")
+    logger_test.info(f"INICIO: Case ID -> {nombre_caso}")
 
     yield
 
     # El estado final lo determinamos según el reporte de pytest
-    # Si llegamos aquí sin excepciones, el flujo fue exitoso.
-    logger_test.info(f"PRUEBA FINALIZADA CON ÉXITO: {nombre_caso}")
+    logger_test.info(f"FIN: Ejecución finalizada para {nombre_caso}")
 
 
 # ======================================================================
@@ -70,6 +69,9 @@ def context(browser, browser_context_args):
         extra_http_headers={"Source": "AutomatedTest_PayStudio"},
     )
     context.set_default_timeout(settings.TIMEOUT)
+
+    log.debug(f"Contexto de navegador creado con timeout: {settings.TIMEOUT}ms")
+
     yield context
     context.close()
 
@@ -77,6 +79,7 @@ def context(browser, browser_context_args):
 @pytest.fixture(scope="function")
 def page(context):
     page = context.new_page()
+    log.info(f"Navegando a la URL base: {settings.URL}")
     page.goto(settings.URL)
     yield page
     page.close()
@@ -101,8 +104,15 @@ def db_instance():
 def check_db_health(db_instance):
     """Antes de cualquier test, verifica que la DB responda."""
     log.info(f"Verificando salud de la base de datos: {settings.DB_NAME}")
+
     if not db_instance.validar_conexion():
-        pytest.exit(f"CRÍTICO: La base de datos '{settings.DB_NAME}' no responde. Abortando ejecución.")
+        log.critical(
+            f"ABORTANDO: Fallo de salud en DB {settings.DB_NAME}. "
+            "No se iniciará la suite."
+        )
+        pytest.exit(
+            f"CRÍTICO: La base de datos '{settings.DB_NAME}' no responde."
+        )
     return True
 
 
@@ -119,9 +129,16 @@ def pytest_runtest_makereport(item, call):
     if report.failed and call.when == "call":
         page = item.funcargs.get("page")
         if settings.SCREENSHOT_ON_FAIL and page:
+            log.error(
+                f"FALLO DETECTADO en '{item.name}'. "
+                "Iniciando protocolo de captura automática..."
+            )
             try:
-                nombre_test = item.name
-                capturar_evidencia(page, nombre_test, "ERROR_CRITICO")
-                log.error(f"Captura de pantalla guardada automáticamente por fallo en: {nombre_test}")
+                capturar_evidencia(page, item.name, "ERROR_CRITICO")
+                log.info(
+                    "EVIDENCIA_AUTO: Captura 'ERROR_CRITICO' "
+                    "generada para el test fallido."
+                )
+
             except Exception as e:
                 log.error(f"No se pudo realizar la captura automática en el hook: {e}")

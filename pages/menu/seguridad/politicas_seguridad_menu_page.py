@@ -16,11 +16,16 @@ class PoliticasSeguridadPage(MenuSeguridadPage):
         self.link_menu_politicas_seguridad = page.get_by_role("link", name="Configuración Políticas Seguridad")
         self.log.debug(f"Locator 'sub_menu_politicas_seguridad' inicializado.")
 
+        self.log.debug(
+            f"Estructura Configuración Politicas de Seguridad (SecurityPolicyConfiguration) mapeada. {len(self.__dict__)} enlaces detectados.")
+        self.log.info(f"Page Object '{self.__class__.__name__}' inicializado correctamente.")
+
     # ------------------------------------------------------------------
     # Pasos reutilizables para construir secuencias de navegación
     # ------------------------------------------------------------------
 
     def _obtener_pasos_para_politicas_seguridad(self):
+        self.log.debug("Encadenando: Abrir Seguridad > Configuración Politicas de Seguridad.")
         return [
             self._obtener_paso_abrir_menu_seguridad(),
             lambda: self.hover(self.link_menu_politicas_seguridad,
@@ -39,6 +44,7 @@ class PoliticasSeguridadPage(MenuSeguridadPage):
             lambda: self.click(self.link_menu_politicas_seguridad,
                                desc="Link Configuración Políticas Seguridad")
         ]
+        self.log.info(f"Destino: SECUC002  Ejecutando secuencia de navegación para '{nombre_caso_prueba}'")
         return self.navegar_a_pagina_estandar(
             pasos_de_navegacion=pasos,
             segmento_url_esperado="SECUC002",
