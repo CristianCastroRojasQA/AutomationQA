@@ -1,4 +1,7 @@
 from repository.base_repository import BaseRepository
+from utils.logger import get_logger
+
+logger = get_logger("Marcas Repository")
 
 
 class MarcasRepository(BaseRepository):
@@ -37,7 +40,7 @@ class MarcasRepository(BaseRepository):
     # ------------------------------------------------------------------
     def obtener_registro(self, nombre: str) -> dict | None:
         query = self.SELECT_MARCA_BY_NOMBRE
-
+        logger.debug(f"Consultando marca '{nombre}' en tabla {self.TABLE_NAME}...")
         conn = self.db_manager.conectar()
         cursor = conn.cursor()
 
@@ -46,6 +49,7 @@ class MarcasRepository(BaseRepository):
             row = cursor.fetchone()
 
             if not row:
+                logger.warning(f"No se encontró ninguna marca coincidente con: '{nombre}'.")
                 self.log_sql(
                     modulo="MARCAS",
                     operacion="SELECT",
@@ -59,7 +63,10 @@ class MarcasRepository(BaseRepository):
                 "ID_MARCA": row[0],
                 "NOMBRE_MARCA": str(row[1]).strip()
             }
-
+            logger.info(
+                f"Marca recuperada de la DB: {resultado['NOMBRE_MARCA']} "
+                f"(ID: {resultado['ID_MARCA']})"
+            )
             self.log_sql(
                 modulo="MARCAS",
                 operacion="SELECT",
@@ -73,6 +80,7 @@ class MarcasRepository(BaseRepository):
         finally:
             cursor.close()
             conn.close()
+            logger.debug("Conexión a base de datos cerrada correctamente.")
 
     def obtener_registro_con_relacion(self) -> dict:
         """
@@ -80,6 +88,7 @@ class MarcasRepository(BaseRepository):
         es decir, que NO pueda eliminarse por integridad referencial.
         """
         query = self.SELECT_MARCA_WITH_RELATION
+        logger.debug("Buscando marca con integridad referencial (Join con ABC_MODEL_TECHNOLOGY)")
         conn = self.db_manager.conectar()
         cursor = conn.cursor()
 
@@ -88,6 +97,7 @@ class MarcasRepository(BaseRepository):
             row = cursor.fetchone()
 
             if not row:
+                logger.error("Fallo de pre-condición: La base de datos no tiene marcas con modelos asociados.")
                 self.log_sql(
                     modulo="MARCAS",
                     operacion="SELECT_RELACION",
@@ -95,15 +105,18 @@ class MarcasRepository(BaseRepository):
                     params=[],
                     resultado="SIN_REGISTROS"
                 )
-                raise AssertionError(
-                    "No se encontró ninguna marca con relación en ABC_MODEL_TECHNOLOGY"
-                )
+                raise AssertionError("No se encontró ninguna marca con relación en ABC_MODEL_TECHNOLOGY")
 
             resultado = {
                 "ID_REGISTRO": row[0],
                 "NOMBRE_REGISTRO": str(row[1]).strip(),
                 "TIPO": "MARCA"
             }
+
+            logger.info(
+                f"Seleccionada marca con relación para prueba de integridad: "
+                f"{resultado['NOMBRE_REGISTRO']}"
+            )
 
             self.log_sql(
                 modulo="MARCAS",
@@ -115,6 +128,11 @@ class MarcasRepository(BaseRepository):
 
             return resultado
 
+        except Exception as e:
+            logger.critical(f"Error de base de datos al intentar buscar marca con relación: {e}")
+            raise
+
         finally:
             cursor.close()
             conn.close()
+            logger.debug("Conexión a base de datos cerrada correctamente.")
